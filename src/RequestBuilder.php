@@ -23,14 +23,18 @@ final class RequestBuilder
     use HttpOptionsTrait;
 
     public const METHOD_GET = 'GET';
+
     public const METHOD_POST = 'POST';
 
-    private string $url = '';
-    private string $method = self::METHOD_GET;
+    /** @var string */
+    private $url = '';
 
-    private RequestOptions $options;
+    /** @var string */
+    private $method = self::METHOD_GET;
 
-    private HttpClientInterface $client;
+    private $options;
+
+    private $client;
 
     public function __construct(HttpClientInterface $client)
     {
@@ -69,6 +73,14 @@ final class RequestBuilder
         return $request;
     }
 
+    public function setBaseUri(string $url): self
+    {
+        $builder = clone $this;
+        $builder->client = ScopingHttpClient::forBaseUri($builder->client, $url);
+
+        return $builder;
+    }
+
     private function build(): array
     {
         if ('' === $this->url) {
@@ -85,13 +97,5 @@ final class RequestBuilder
     public function request(): Response
     {
         return new Response($this->client->request(...$this->build()));
-    }
-
-    public function setBaseUri(string $url): self
-    {
-        $builder = clone $this;
-        $builder->client = ScopingHttpClient::forBaseUri($builder->client, $url);
-
-        return $builder;
     }
 }

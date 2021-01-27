@@ -18,7 +18,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class HttpClient
 {
-    private HttpClientInterface $client;
+    /** @var HttpClientInterface */
+    private $client;
 
     public function __construct(?HttpClientInterface $client = null)
     {

@@ -17,7 +17,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class Response implements ResponseInterface
 {
-    private ResponseInterface $response;
+    /** @var ResponseInterface */
+    private $response;
 
     public function __construct(ResponseInterface $response)
     {

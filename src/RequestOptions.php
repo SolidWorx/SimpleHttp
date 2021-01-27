@@ -177,4 +177,16 @@ final class RequestOptions
 
         return $this;
     }
+
+    /**
+     * @param bool|resource|Closure $resource
+     *
+     * @return $this
+     */
+    public function buffer($resource): self
+    {
+        $this->buffer = $resource;
+
+        return $this;
+    }
 }
