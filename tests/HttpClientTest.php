@@ -61,6 +61,18 @@ final class HttpClientTest extends TestCase
         self::assertSame(['Accept: */*', 'Authorization: Basic Zm9vOmJhcg=='], $mockResponse->getRequestOptions()['headers']);
     }
 
+    public function testRequestWithBearerAuth(): void
+    {
+        $mockResponse = new MockResponse();
+        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+
+        $httpClient->bearerToken('foobar')
+            ->url('https://example.com')
+            ->request();
+
+        self::assertSame(['Accept: */*', 'Authorization: Bearer foobar'], $mockResponse->getRequestOptions()['headers']);
+    }
+
     public function testRequestWithUrl(): void
     {
         $mockResponse = new MockResponse();
@@ -366,6 +378,7 @@ final class HttpClientTest extends TestCase
         self::assertObjectIsNotTheSame($httpClient, $httpClient->setBaseUri('http://example.com'));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->disableSslVerification());
         self::assertObjectIsNotTheSame($httpClient, $httpClient->basicAuth('foo'));
+        self::assertObjectIsNotTheSame($httpClient, $httpClient->bearerToken('foo'));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->body(''));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->get());
         self::assertObjectIsNotTheSame($httpClient, $httpClient->post());

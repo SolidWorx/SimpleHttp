@@ -43,6 +43,17 @@ trait HttpOptionsTrait
     }
 
     /**
+     * @return $this
+     */
+    public function bearerToken(string $token): self
+    {
+        $httpClient = clone $this;
+        $httpClient->options = $httpClient->options->bearerAuth($token);
+
+        return $httpClient;
+    }
+
+    /**
      * @param array|string|resource|Traversable|Closure $body
      *
      * @return $this

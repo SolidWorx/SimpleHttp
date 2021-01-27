@@ -52,7 +52,7 @@ final class RequestOptions
     /** @var bool|resource|Closure */
     private $buffer = HttpClientInterface::OPTIONS_DEFAULTS['buffer'];
 
-    /** @var null|callable(int, int, array $info) */
+    /** @var null|callable(int, int, array) */
     private $on_progress = HttpClientInterface::OPTIONS_DEFAULTS['on_progress'];
 
     /** @var array */
@@ -123,6 +123,13 @@ final class RequestOptions
     public function basicAuth(string $username, ?string $password = null): self
     {
         $this->auth_basic = \implode(':', [$username, $password]);
+
+        return $this;
+    }
+
+    public function bearerAuth(string $token): self
+    {
+        $this->auth_bearer = $token;
 
         return $this;
     }
