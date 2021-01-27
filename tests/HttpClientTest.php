@@ -261,6 +261,27 @@ final class HttpClientTest extends TestCase
         }
     }
 
+    public function testItCanAppendToAFile(): void
+    {
+        try {
+            $file = tempnam(sys_get_temp_dir(), 'api');
+            assert(false !== $file);
+            file_put_contents($file, 'a b c 1 2 3');
+
+            $mockResponse = new MockResponse('foo bar baz');
+            HttpClient::create(new MockHttpClient($mockResponse))
+                ->url('https://example.com')
+                ->appendToFile($file)
+                ->request()
+                ->getContent();
+
+            self::assertFileExists($file);
+            self::assertSame('a b c 1 2 3foo bar baz', file_get_contents($file));
+        } finally {
+            unlink($file);
+        }
+    }
+
     public function testResponseInformation(): void
     {
         $mockResponse = new MockResponse();
@@ -351,6 +372,7 @@ final class HttpClientTest extends TestCase
         self::assertObjectIsNotTheSame($httpClient, $httpClient->disableSslVerification());
         self::assertObjectIsNotTheSame($httpClient, $httpClient->query());
         self::assertObjectIsNotTheSame($httpClient, $httpClient->streamToFile(''));
+        self::assertObjectIsNotTheSame($httpClient, $httpClient->appendToFile(''));
     }
 
     private static function assertObjectIsNotTheSame(RequestBuilder $expected, RequestBuilder $actual): void

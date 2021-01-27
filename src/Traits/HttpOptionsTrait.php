@@ -131,4 +131,20 @@ trait HttpOptionsTrait
 
         return $httpClient;
     }
+
+    /**
+     * @return $this
+     */
+    public function appendToFile(string $filePath): self
+    {
+        $httpClient = clone $this;
+
+        $buffer = static function (array $headers) use ($filePath) {
+            return fopen($filePath, 'a+b');
+        };
+
+        $httpClient->options = $httpClient->options->buffer($buffer);
+
+        return $httpClient;
+    }
 }
