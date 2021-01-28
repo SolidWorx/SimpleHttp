@@ -15,6 +15,7 @@ namespace SolidWorx\ApiFy\Tests;
 
 use Closure;
 use PHPUnit\Framework\TestCase;
+use SolidWorx\ApiFy\Exception\InvalidArgumentException;
 use SolidWorx\ApiFy\Exception\MissingUrlException;
 use SolidWorx\ApiFy\HttpClient;
 use SolidWorx\ApiFy\Progress;
@@ -281,8 +282,9 @@ final class HttpClientTest extends TestCase
             file_put_contents($file, 'a b c 1 2 3');
 
             $mockResponse = new MockResponse('foo bar baz');
-            HttpClient::create(new MockHttpClient($mockResponse))
-                ->url('https://example.com')
+            $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+
+            $httpClient->url('https://example.com')
                 ->appendToFile($file)
                 ->request()
                 ->getContent();
@@ -292,6 +294,83 @@ final class HttpClientTest extends TestCase
         } finally {
             unlink($file);
         }
+    }
+
+    public function testUploadFile(): void
+    {
+        try {
+            $file = tempnam(sys_get_temp_dir(), 'api');
+            assert(false !== $file);
+            file_put_contents($file, 'a b c 1 2 3');
+
+            $mockResponse = new MockResponse('', ['size_upload' => 0.0]);
+            $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+            $response = $httpClient
+                ->url('https://example.com')
+                ->uploadFile('field', $file)
+                ->request();
+
+            $headers = $mockResponse->getRequestOptions()['headers'];
+            self::assertNotEmpty($headers);
+            self::assertStringStartsWith('content-type: multipart/form-data; boundary=', $headers[0]);
+            self::assertSame('Accept: */*', $headers[1]);
+            $body = $mockResponse->getRequestOptions()['body'];
+            self::assertInstanceOf(Closure::class, $body);
+            self::assertSame(182.0, $response ->getInfo()['size_upload']);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public function testUploadFileWithFormData(): void
+    {
+        try {
+            $file = tempnam(sys_get_temp_dir(), 'api');
+            assert(false !== $file);
+            file_put_contents($file, 'a b c 1 2 3');
+
+            $mockResponse = new MockResponse('', ['size_upload' => 0.0]);
+            $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+            $response = $httpClient
+                ->url('https://example.com')
+                ->formData(['foo' => 'bar'])
+                ->uploadFile('field', $file)
+                ->request();
+
+            $headers = $mockResponse->getRequestOptions()['headers'];
+            self::assertNotEmpty($headers);
+            self::assertStringStartsWith('content-type: multipart/form-data; boundary=', $headers[0]);
+            self::assertSame('Accept: */*', $headers[1]);
+            $body = $mockResponse->getRequestOptions()['body'];
+            self::assertInstanceOf(Closure::class, $body);
+            self::assertSame(319.0, $response ->getInfo()['size_upload']);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public function testUploadFileWithStringBody(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('File uploads cannot be used without an array body');
+
+        HttpClient::create(new MockHttpClient())
+            ->url('https://example.com')
+            ->body('foo')
+            ->uploadFile('field', __FILE__)
+            ->request();
+    }
+
+    public function testUploadFileWithJson(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('File uploads cannot be used without an array body');
+
+        HttpClient::create(new MockHttpClient())
+            ->url('https://example.com')
+            ->json(['foo' => 'bar'])
+            ->uploadFile('field', __FILE__)
+            ->request();
     }
 
     public function testResponseInformation(): void
@@ -386,6 +465,7 @@ final class HttpClientTest extends TestCase
         self::assertObjectIsNotTheSame($httpClient, $httpClient->query());
         self::assertObjectIsNotTheSame($httpClient, $httpClient->streamToFile(''));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->appendToFile(''));
+        self::assertObjectIsNotTheSame($httpClient, $httpClient->uploadFile('', __FILE__));
     }
 
     private static function assertObjectIsNotTheSame(RequestBuilder $expected, RequestBuilder $actual): void

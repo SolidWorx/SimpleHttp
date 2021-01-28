@@ -14,11 +14,18 @@ declare(strict_types=1);
 namespace SolidWorx\ApiFy;
 
 use Closure;
+use SolidWorx\ApiFy\Exception\InvalidArgumentException;
+use Symfony\Component\Mime\Header\HeaderInterface;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Traversable;
 
 final class RequestOptions
 {
+    /** @var array */
+    private $files = [];
+
     /** @var string|null */
     private $auth_basic = HttpClientInterface::OPTIONS_DEFAULTS['auth_basic'];
 
@@ -138,7 +145,32 @@ final class RequestOptions
     {
         $options = [];
 
+        if ([] !== $this->files) {
+            if ((!\is_array($this->body) && '' !== $this->body) || null !== $this->json) {
+                throw new InvalidArgumentException('File uploads cannot be used without an array body');
+            }
+
+            $body = \is_array($this->body) ? $this->body : [];
+            $this->body = '';
+
+            $formData = new FormDataPart(\array_merge($body, $this->files));
+
+            $headers = $formData->getPreparedHeaders();
+
+            foreach ($headers->getNames() as $name) {
+                /** @var HeaderInterface $header */
+                $header = $headers->get($name);
+                $this->addHeader($name, $header->getBodyAsString());
+            }
+
+            $options['body'] = $formData->bodyToIterable();
+        }
+
         foreach (get_object_vars($this) as $key => $value) {
+            if (!\array_key_exists($key, HttpClientInterface::OPTIONS_DEFAULTS)) {
+                continue;
+            }
+
             if ($value !== HttpClientInterface::OPTIONS_DEFAULTS[$key]) {
                 $options[$key] = $value;
             }
@@ -187,12 +219,17 @@ final class RequestOptions
 
     /**
      * @param bool|resource|Closure $resource
-     *
-     * @return $this
      */
     public function buffer($resource): self
     {
         $this->buffer = $resource;
+
+        return $this;
+    }
+
+    public function addFile(string $fieldName, DataPart $file): self
+    {
+        $this->files[$fieldName] = $file;
 
         return $this;
     }

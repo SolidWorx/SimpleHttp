@@ -15,6 +15,7 @@ namespace SolidWorx\ApiFy\Traits;
 
 use Closure;
 use SolidWorx\ApiFy\Progress;
+use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
 
 trait HttpOptionsTrait
@@ -155,6 +156,19 @@ trait HttpOptionsTrait
         };
 
         $httpClient->options = $httpClient->options->buffer($buffer);
+
+        return $httpClient;
+    }
+
+    /**
+     * @return $this
+     */
+    public function uploadFile(string $fieldName, string $filepath): self
+    {
+        $data = DataPart::fromPath($filepath);
+
+        $httpClient = clone $this;
+        $httpClient->options = $httpClient->options->addFile($fieldName, $data);
 
         return $httpClient;
     }
