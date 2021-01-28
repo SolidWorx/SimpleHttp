@@ -233,4 +233,11 @@ final class RequestOptions
 
         return $this;
     }
+
+    public function httpVersion(string $httpVersion): self
+    {
+        $this->http_version = $httpVersion;
+
+        return $this;
+    }
 }

@@ -172,4 +172,15 @@ trait HttpOptionsTrait
 
         return $httpClient;
     }
+
+    /**
+     * @return $this
+     */
+    public function httpVersion(string $httpVersion): self
+    {
+        $httpClient = clone $this;
+        $httpClient->options = $httpClient->options->httpVersion($httpVersion);
+
+        return $httpClient;
+    }
 }

@@ -373,6 +373,28 @@ final class HttpClientTest extends TestCase
             ->request();
     }
 
+    public function testHttpVersion1(): void
+    {
+        $mockResponse = new MockResponse();
+        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient->url('https://example.com')
+            ->httpVersion(HttpClient::HTTP_VERSION_1)
+            ->request();
+
+        self::assertSame('1.1', $mockResponse->getRequestOptions()['http_version']);
+    }
+
+    public function testHttpVersion2(): void
+    {
+        $mockResponse = new MockResponse();
+        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient->url('https://example.com')
+            ->httpVersion(HttpClient::HTTP_VERSION_2)
+            ->request();
+
+        self::assertSame('2.0', $mockResponse->getRequestOptions()['http_version']);
+    }
+
     public function testResponseInformation(): void
     {
         $mockResponse = new MockResponse();
@@ -466,6 +488,7 @@ final class HttpClientTest extends TestCase
         self::assertObjectIsNotTheSame($httpClient, $httpClient->streamToFile(''));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->appendToFile(''));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->uploadFile('', __FILE__));
+        self::assertObjectIsNotTheSame($httpClient, $httpClient->httpVersion(''));
     }
 
     private static function assertObjectIsNotTheSame(RequestBuilder $expected, RequestBuilder $actual): void

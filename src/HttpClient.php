@@ -18,6 +18,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class HttpClient
 {
+    public const HTTP_VERSION_1 = '1.1';
+    public const HTTP_VERSION_2 = '2.0';
+
     /** @var HttpClientInterface */
     private $client;
 
