@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace SolidWorx\ApiFy;
 
 use SolidWorx\ApiFy\Exception\MissingUrlException;
+use SolidWorx\ApiFy\Traits\HttpMethodsTrait;
 use SolidWorx\ApiFy\Traits\HttpOptionsTrait;
 use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -21,16 +22,10 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 final class RequestBuilder
 {
     use HttpOptionsTrait;
-
-    public const METHOD_GET = 'GET';
-
-    public const METHOD_POST = 'POST';
+    use HttpMethodsTrait;
 
     /** @var string */
     private $url = '';
-
-    /** @var string */
-    private $method = self::METHOD_GET;
 
     private $options;
 
@@ -51,24 +46,6 @@ final class RequestBuilder
     {
         $request = clone $this;
         $request->url = $url;
-
-        return $request;
-    }
-
-    public function get(): RequestBuilder
-    {
-        return $this->method(self::METHOD_GET);
-    }
-
-    public function post(): RequestBuilder
-    {
-        return $this->method(self::METHOD_POST);
-    }
-
-    public function method(string $method): self
-    {
-        $request = clone $this;
-        $request->method = \strtoupper($method);
 
         return $request;
     }
