@@ -13,12 +13,7 @@ declare(strict_types=1);
 
 namespace SolidWorx\ApiFy\Traits;
 
-use Closure;
 use SolidWorx\ApiFy\HttpClient;
-use SolidWorx\ApiFy\Progress;
-use SolidWorx\ApiFy\RequestBuilder;
-use Symfony\Component\Mime\Part\DataPart;
-use Traversable;
 
 trait HttpMethodsTrait
 {

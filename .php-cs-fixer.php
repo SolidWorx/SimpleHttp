@@ -22,7 +22,7 @@ EOF;
 $finder = PhpCsFixer\Finder::create()
     ->in(['src', 'tests']);
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
     ->setRules(
         [
             '@PSR1' => true,

@@ -219,6 +219,50 @@ final class HttpClientTest extends TestCase
         self::assertSame('POST', $mockResponse->getRequestMethod());
     }
 
+    public function testWithPutHelperMethods(): void
+    {
+        $mockResponse = new MockResponse();
+        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient->put()
+            ->url('https://example.com')
+            ->request();
+
+        self::assertSame('PUT', $mockResponse->getRequestMethod());
+    }
+
+    public function testWithPatchHelperMethods(): void
+    {
+        $mockResponse = new MockResponse();
+        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient->patch()
+            ->url('https://example.com')
+            ->request();
+
+        self::assertSame('PATCH', $mockResponse->getRequestMethod());
+    }
+
+    public function testWithOptionsHelperMethods(): void
+    {
+        $mockResponse = new MockResponse();
+        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient->options()
+            ->url('https://example.com')
+            ->request();
+
+        self::assertSame('OPTIONS', $mockResponse->getRequestMethod());
+    }
+
+    public function testWithDeleteHelperMethods(): void
+    {
+        $mockResponse = new MockResponse();
+        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient->delete()
+            ->url('https://example.com')
+            ->request();
+
+        self::assertSame('DELETE', $mockResponse->getRequestMethod());
+    }
+
     public function testWithProgress(): void
     {
         $progressCalled = false;
@@ -233,9 +277,18 @@ final class HttpClientTest extends TestCase
 
                 self::assertContains($info['http_code'] ?? null, [0, 200]);
 
-                unset($info['start_time'], $info['http_code']);
+                unset($info['start_time'], $info['total_time'], $info['http_code']);
 
-                self::assertEquals(['response_headers' => [], 'error' => null, 'canceled' => false, 'redirect_count' => 0, 'redirect_url' => null, 'http_method' => 'GET', 'user_data' => null, 'url' => 'https://example.com/'], $info);
+                self::assertEquals([
+                    'response_headers' => [],
+                    'error' => null,
+                    'canceled' => false,
+                    'redirect_count' => 0,
+                    'redirect_url' => null,
+                    'http_method' => 'GET',
+                    'user_data' => null,
+                    'url' => 'https://example.com/',
+                ], $info);
 
                 $progressCalled = true;
             })
@@ -316,7 +369,7 @@ final class HttpClientTest extends TestCase
             self::assertSame('Accept: */*', $headers[1]);
             $body = $mockResponse->getRequestOptions()['body'];
             self::assertInstanceOf(Closure::class, $body);
-            self::assertSame(182.0, $response ->getInfo()['size_upload']);
+            self::assertSame(182.0, $response->getInfo()['size_upload']);
         } finally {
             unlink($file);
         }
@@ -343,7 +396,7 @@ final class HttpClientTest extends TestCase
             self::assertSame('Accept: */*', $headers[1]);
             $body = $mockResponse->getRequestOptions()['body'];
             self::assertInstanceOf(Closure::class, $body);
-            self::assertSame(319.0, $response ->getInfo()['size_upload']);
+            self::assertSame(319.0, $response->getInfo()['size_upload']);
         } finally {
             unlink($file);
         }

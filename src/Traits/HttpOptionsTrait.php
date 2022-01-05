@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace SolidWorx\ApiFy\Traits;
 
 use Closure;
+use SolidWorx\ApiFy\HttpClient;
 use SolidWorx\ApiFy\Progress;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
@@ -180,6 +181,17 @@ trait HttpOptionsTrait
     {
         $httpClient = clone $this;
         $httpClient->options = $httpClient->options->httpVersion($httpVersion);
+
+        return $httpClient;
+    }
+
+    /**
+     * @return $this
+     */
+    public function http2(): self
+    {
+        $httpClient = clone $this;
+        $httpClient->options = $httpClient->options->httpVersion(HttpClient::HTTP_VERSION_2);
 
         return $httpClient;
     }

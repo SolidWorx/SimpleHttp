@@ -59,7 +59,7 @@ final class RequestOptions
     /** @var bool|resource|Closure */
     private $buffer = HttpClientInterface::OPTIONS_DEFAULTS['buffer'];
 
-    /** @var null|callable(int, int, array) */
+    /** @var callable(int, int, array)|null */
     private $on_progress = HttpClientInterface::OPTIONS_DEFAULTS['on_progress'];
 
     /** @var array */
