@@ -44,4 +44,12 @@ final class HttpClient
 
         return new RequestBuilder($self->client);
     }
+
+    public static function createForBaseUrl(string $url, ?HttpClientInterface $client = null): RequestBuilder
+    {
+        $self = new self($client);
+
+        return (new RequestBuilder($self->client))
+            ->url($url);
+    }
 }
