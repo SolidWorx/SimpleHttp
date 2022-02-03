@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -11,9 +11,9 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy;
+namespace SolidWorx\SimpleHttp;
 
-use SolidWorx\ApiFy\Exception\InvalidArgumentException;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use Symfony\Component\Mime\Header\HeaderInterface;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;

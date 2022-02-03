@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -10,14 +10,14 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy\Factory;
+namespace SolidWorx\SimpleHttp\Factory;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Utils;
 use Http\Adapter\Guzzle7\Client as Guzzle7Client;
 use Psr\Http\Client\ClientInterface;
-use SolidWorx\ApiFy\Progress;
-use SolidWorx\ApiFy\RequestOptions;
+use SolidWorx\SimpleHttp\Progress;
+use SolidWorx\SimpleHttp\RequestOptions;
 use function array_merge_recursive;
 use function is_string;
 

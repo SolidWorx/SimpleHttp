@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -11,17 +11,17 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy;
+namespace SolidWorx\SimpleHttp;
 
 use Http\Client\Common\PluginClient;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
-use SolidWorx\ApiFy\Discovery\HttpAsyncClientDiscovery;
-use SolidWorx\ApiFy\Exception\MissingUrlException;
-use SolidWorx\ApiFy\Traits\HttpMethodsTrait;
-use SolidWorx\ApiFy\Traits\HttpOptionsTrait;
+use SolidWorx\SimpleHttp\Discovery\HttpAsyncClientDiscovery;
+use SolidWorx\SimpleHttp\Exception\MissingUrlException;
+use SolidWorx\SimpleHttp\Traits\HttpMethodsTrait;
+use SolidWorx\SimpleHttp\Traits\HttpOptionsTrait;
 use Throwable;
 use function in_array;
 

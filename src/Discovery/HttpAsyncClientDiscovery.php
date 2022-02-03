@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -10,7 +10,7 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy\Discovery;
+namespace SolidWorx\SimpleHttp\Discovery;
 
 use Http\Client\Common\EmulatedHttpAsyncClient;
 use Http\Client\HttpAsyncClient;
@@ -18,9 +18,9 @@ use Http\Discovery\ClassDiscovery;
 use Http\Discovery\Exception\DiscoveryFailedException;
 use Http\Discovery\Exception\NotFoundException;
 use Psr\Http\Client\ClientInterface;
-use SolidWorx\ApiFy\Discovery\Strategy\HttpAsyncClientStrategy;
-use SolidWorx\ApiFy\Factory\HttpAsyncClientFactory;
-use SolidWorx\ApiFy\RequestOptions;
+use SolidWorx\SimpleHttp\Discovery\Strategy\HttpAsyncClientStrategy;
+use SolidWorx\SimpleHttp\Factory\HttpAsyncClientFactory;
+use SolidWorx\SimpleHttp\RequestOptions;
 use function array_unshift;
 use function array_unique;
 use function assert;

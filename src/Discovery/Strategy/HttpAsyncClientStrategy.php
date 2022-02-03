@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -10,12 +10,12 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy\Discovery\Strategy;
+namespace SolidWorx\SimpleHttp\Discovery\Strategy;
 
 use Http\Adapter\Guzzle7\Client as Guzzle7;
 use Http\Client\HttpAsyncClient;
 use Http\Discovery\Strategy\DiscoveryStrategy;
-use SolidWorx\ApiFy\Factory\Guzzle7Factory;
+use SolidWorx\SimpleHttp\Factory\Guzzle7Factory;
 
 final class HttpAsyncClientStrategy implements DiscoveryStrategy
 {

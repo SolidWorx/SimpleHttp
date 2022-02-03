@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -11,14 +11,14 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy;
+namespace SolidWorx\SimpleHttp;
 
 use Exception;
 use Http\Promise\Promise;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use SolidWorx\ApiFy\Exception\NotImplementedException;
+use SolidWorx\SimpleHttp\Exception\NotImplementedException;
 use function is_array;
 use function json_decode;
 use const JSON_THROW_ON_ERROR;

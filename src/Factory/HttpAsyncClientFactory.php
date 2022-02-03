@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -10,11 +10,11 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy\Factory;
+namespace SolidWorx\SimpleHttp\Factory;
 
 use Http\Client\HttpAsyncClient;
 use Psr\Http\Client\ClientInterface;
-use SolidWorx\ApiFy\RequestOptions;
+use SolidWorx\SimpleHttp\RequestOptions;
 
 interface HttpAsyncClientFactory
 {

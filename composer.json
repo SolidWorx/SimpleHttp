@@ -1,12 +1,12 @@
 {
-    "name": "solidworx/apify",
+    "name": "solidworx/simple-http",
     "type": "library",
     "description": "Provides a fluent interface for HTTP requests",
     "keywords": [
         "http",
         "http-client"
     ],
-    "homepage": "https://github.com/SolidWorx/Apify",
+    "homepage": "https://github.com/SolidWorx/SimpleHttp",
     "license": "MIT",
     "authors": [
         {
@@ -58,16 +58,16 @@
     },
     "autoload": {
         "psr-4": {
-            "SolidWorx\\ApiFy\\": "src"
+            "SolidWorx\\SimpleHttp\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "SolidWorx\\ApiFy\\Tests\\": "tests"
+            "SolidWorx\\SimpleHttp\\Tests\\": "tests"
         }
     },
     "support": {
-        "issues": "https://github.com/SolidWorx/Apify/issues",
-        "source": "https://github.com/SolidWorx/Apify"
+        "issues": "https://github.com/SolidWorx/SimpleHttp/issues",
+        "source": "https://github.com/SolidWorx/SimpleHttp"
     }
 }

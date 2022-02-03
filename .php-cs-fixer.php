@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-/**
- * This file is part of SolidWorx/Apify project.
+/*
+ * This file is part of SolidWorx/SimpleHttp project.
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
  * For the full copyright and license information, please view
@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 
 $header = <<<'EOF'
-This file is part of SolidWorx/Apify project.
+This file is part of SolidWorx/SimpleHttp project.
 
 Copyright (c) Pierre du Plessis <open-source@solidworx.co>
 

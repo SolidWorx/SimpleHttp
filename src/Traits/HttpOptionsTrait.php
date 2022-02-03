@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -11,7 +11,7 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy\Traits;
+namespace SolidWorx\SimpleHttp\Traits;
 
 use Closure;
 use Http\Client\Common\Plugin;
@@ -20,9 +20,9 @@ use Http\Client\Common\Plugin\QueryDefaultsPlugin;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
-use SolidWorx\ApiFy\Exception\InvalidArgumentException;
-use SolidWorx\ApiFy\HttpClient;
-use SolidWorx\ApiFy\Progress;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
+use SolidWorx\SimpleHttp\HttpClient;
+use SolidWorx\SimpleHttp\Progress;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
 use function fopen;

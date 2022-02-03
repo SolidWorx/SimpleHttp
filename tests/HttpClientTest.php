@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of SolidWorx/Apify project.
+ * This file is part of SolidWorx/SimpleHttp project.
  *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
@@ -11,7 +11,7 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace SolidWorx\ApiFy\Tests;
+namespace SolidWorx\SimpleHttp\Tests;
 
 use Closure;
 use GuzzleHttp\Client;
@@ -27,9 +27,9 @@ use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
 use JsonException;
 use PHPUnit\Framework\TestCase;
-use SolidWorx\ApiFy\Exception\MissingUrlException;
-use SolidWorx\ApiFy\HttpClient;
-use SolidWorx\ApiFy\RequestBuilder;
+use SolidWorx\SimpleHttp\Exception\MissingUrlException;
+use SolidWorx\SimpleHttp\HttpClient;
+use SolidWorx\SimpleHttp\RequestBuilder;
 use function file_get_contents;
 
 final class HttpClientTest extends TestCase
