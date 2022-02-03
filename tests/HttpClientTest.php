@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Tests;
 
 use Closure;
+use function file_get_contents;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -31,9 +32,6 @@ use PHPUnit\Framework\TestCase;
 use SolidWorx\SimpleHttp\Exception\MissingUrlException;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\RequestBuilder;
-use SolidWorx\SimpleHttp\RequestOptions;
-use function file_exists;
-use function file_get_contents;
 
 final class HttpClientTest extends TestCase
 {
@@ -52,7 +50,7 @@ final class HttpClientTest extends TestCase
                 [
                     new BaseUriPlugin(
                         Psr17FactoryDiscovery::findUriFactory()->createUri('https://foo.bar.com')
-                    )
+                    ),
                 ],
                 $this->plugins
             );
@@ -68,7 +66,7 @@ final class HttpClientTest extends TestCase
         $this->invoke(Closure::bind(function (): void {
             Assert::assertEquals(
                 [
-                    new AuthenticationPlugin(new BasicAuth('foo', 'bar'))
+                    new AuthenticationPlugin(new BasicAuth('foo', 'bar')),
                 ],
                 $this->plugins
             );
@@ -84,7 +82,7 @@ final class HttpClientTest extends TestCase
         $this->invoke(Closure::bind(function (): void {
             Assert::assertEquals(
                 [
-                    new AuthenticationPlugin(new Bearer('foobar'))
+                    new AuthenticationPlugin(new Bearer('foobar')),
                 ],
                 $this->plugins
             );
@@ -146,11 +144,10 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->query(['foo' => 'bar', 'baz' => 'foobar']);
 
-
         $this->invoke(Closure::bind(function (): void {
             Assert::assertEquals(
                 [
-                    new QueryDefaultsPlugin(['foo' => 'bar', 'baz' => 'foobar'])
+                    new QueryDefaultsPlugin(['foo' => 'bar', 'baz' => 'foobar']),
                 ],
                 $this->plugins
             );
@@ -322,7 +319,6 @@ final class HttpClientTest extends TestCase
         file_put_contents($file, 'a b c 1 2 3');
 
         try {
-
             $httpClient = HttpClient::create($this->getMockGuzzleClient(new Response(200, [], 'foo bar baz')));
 
             $httpClient->url('https://example.com')
@@ -460,7 +456,7 @@ final class HttpClientTest extends TestCase
      */
     private function invoke($closure): void
     {
-        if ($closure === false) {
+        if (false === $closure) {
             self::fail('Closure could not be bound to RequestBuilder');
         }
 
@@ -469,9 +465,8 @@ final class HttpClientTest extends TestCase
 
     private function getMockGuzzleClient(Response ...$response): Client
     {
-        /** @var array<int, mixed> $response */
         return new Client([
-            'handler' => HandlerStack::create(new MockHandler($response))
+            'handler' => HandlerStack::create(new MockHandler($response)),
         ]);
     }
 }

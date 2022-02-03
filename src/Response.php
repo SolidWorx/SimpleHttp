@@ -15,13 +15,13 @@ namespace SolidWorx\SimpleHttp;
 
 use Exception;
 use Http\Promise\Promise;
+use function is_array;
+use function json_decode;
+use const JSON_THROW_ON_ERROR;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Exception\NotImplementedException;
-use function is_array;
-use function json_decode;
-use const JSON_THROW_ON_ERROR;
 
 final class Response implements ResponseInterface
 {
@@ -181,12 +181,10 @@ final class Response implements ResponseInterface
      */
     public function __destruct()
     {
-        if ($this->response->getState() !== Promise::FULFILLED) {
+        if (Promise::FULFILLED !== $this->response->getState()) {
             /** @var ResponseInterface $response */
             $response = $this->response->wait();
             $response->getBody()->close();
         }
     }
 }
-
-

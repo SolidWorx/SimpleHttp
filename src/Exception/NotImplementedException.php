@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Exception;
 
-use Throwable;
 use function sprintf;
+use Throwable;
 
 final class NotImplementedException extends \InvalidArgumentException
 {

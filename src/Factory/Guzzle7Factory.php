@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -12,14 +13,14 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Factory;
 
+use function array_merge_recursive;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Utils;
 use Http\Adapter\Guzzle7\Client as Guzzle7Client;
+use function is_string;
 use Psr\Http\Client\ClientInterface;
 use SolidWorx\SimpleHttp\Progress;
 use SolidWorx\SimpleHttp\RequestOptions;
-use function array_merge_recursive;
-use function is_string;
 
 final class Guzzle7Factory implements HttpAsyncClientFactory
 {
@@ -29,13 +30,13 @@ final class Guzzle7Factory implements HttpAsyncClientFactory
             'stream' => true,
         ];
 
-        if ($requestOptions->onProgress !== null) {
+        if (null !== $requestOptions->onProgress) {
             $options['progress'] = static function (int $totalSize, int $downloaded) use ($requestOptions): void {
                 ($requestOptions->onProgress)(new Progress($downloaded, $totalSize));
             };
         }
 
-        if ($requestOptions->buffer !== null) {
+        if (null !== $requestOptions->buffer) {
             if (is_string($requestOptions->buffer)) {
                 $resource = Utils::streamFor(Utils::tryFopen($requestOptions->buffer, 'c+b'));
             } else {

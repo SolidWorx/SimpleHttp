@@ -15,6 +15,7 @@ namespace SolidWorx\SimpleHttp;
 
 use Http\Client\Common\PluginClient;
 use Http\Discovery\Psr17FactoryDiscovery;
+use function in_array;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
@@ -23,7 +24,6 @@ use SolidWorx\SimpleHttp\Exception\MissingUrlException;
 use SolidWorx\SimpleHttp\Traits\HttpMethodsTrait;
 use SolidWorx\SimpleHttp\Traits\HttpOptionsTrait;
 use Throwable;
-use function in_array;
 
 final class RequestBuilder
 {
@@ -79,7 +79,7 @@ final class RequestBuilder
 
         $body = $this->options->getBody();
 
-        if ($body !== '') {
+        if ('' !== $body) {
             if (in_array($this->method, [HttpClient::METHOD_GET, HttpClient::METHOD_HEAD], true)) {
                 // When a body is set, but the request is a method that does not require a body, then we default to a POST request
                 $request = $request->withMethod(HttpClient::METHOD_POST);

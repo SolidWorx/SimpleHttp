@@ -1,2 +1,7 @@
 parameters:
-	ignoreErrors: []
+	ignoreErrors:
+		-
+			message: "#^Parameter \\#1 \\$queue of class GuzzleHttp\\\\Handler\\\\MockHandler constructor expects array\\<int, mixed\\>\\|null, array\\<int\\|string, GuzzleHttp\\\\Psr7\\\\Response\\> given\\.$#"
+			count: 1
+			path: tests/HttpClientTest.php
+
