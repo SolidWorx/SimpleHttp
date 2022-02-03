@@ -1,0 +1,77 @@
+name: Run code quality checks
+
+on: [pull_request]
+
+jobs:
+    lint:
+        name: Check PHP syntax
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                php:
+                    - 7.4
+                    - 8.0
+                    - 8.1
+        steps:
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  tools: composer:2
+                  coverage: none
+
+            - uses: actions/checkout@v2
+
+            - uses: ramsey/composer-install@v2
+
+            - run: composer require overtrue/phplint --dev
+
+            - run: ./vendor/bin/phplint ./ --exclude=vendor
+
+    phpstan:
+        name: Run PHPStan
+        runs-on: ubuntu-latest
+        steps:
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: latest
+                  coverage: none
+
+            - uses: actions/checkout@v2
+
+            - uses: ramsey/composer-install@v2
+
+            - run: ./vendor/bin/phpstan
+
+    psalm:
+        name: Run Psalm
+        runs-on: ubuntu-latest
+        steps:
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: latest
+                  coverage: none
+
+            - uses: actions/checkout@v2
+
+            - uses: ramsey/composer-install@v2
+
+            - run: ./vendor/bin/psalm
+
+    phpcs:
+        name: Run PHP-CS-Fixer
+        runs-on: ubuntu-latest
+        steps:
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: latest
+                  coverage: none
+
+            - uses: actions/checkout@v2
+
+            - uses: ramsey/composer-install@v2
+
+            - run: ./vendor/bin/php-cs-fixer fix --dry-run --diff
