@@ -1,0 +1,51 @@
+name: Run unit tests
+
+on: [pull_request]
+
+jobs:
+    phpunit:
+        name: Run Phpunit
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                php:
+                    - 7.4
+                    - 8.0
+                    - 8.1
+                dependencies:
+                    - lowest
+                    - highest
+                include:
+                    -   php-version: 8.2
+                        composer-options: --ignore-platform-reqs
+        steps:
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  coverage: none
+
+            - uses: actions/checkout@v2
+
+            - uses: ramsey/composer-install@v2
+              with:
+                dependency-versions: ${{ matrix.dependencies }}
+                composer-options: ${{ matrix.composer-options }}
+
+            - run: ./vendor/bin/phpunit
+
+    infection:
+        name: Run Infection
+        runs-on: ubuntu-latest
+        steps:
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: latest
+                  coverage: pcov
+
+            - uses: actions/checkout@v2
+
+            - uses: ramsey/composer-install@v2
+
+            - run: ./vendor/bin/infection --min-msi=57 --min-covered-msi=85 --threads=4 --logger-github

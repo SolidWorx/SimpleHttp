@@ -14,11 +14,15 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Factory;
 
 use function array_merge_recursive;
+use function class_exists;
 use GuzzleHttp\Client;
+use function GuzzleHttp\Psr7\stream_for;
+use function GuzzleHttp\Psr7\try_fopen;
 use GuzzleHttp\Psr7\Utils;
 use Http\Adapter\Guzzle7\Client as Guzzle7Client;
 use function is_string;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Progress;
 use SolidWorx\SimpleHttp\RequestOptions;
 
@@ -38,9 +42,9 @@ final class Guzzle7Factory implements HttpAsyncClientFactory
 
         if (null !== $requestOptions->buffer) {
             if (is_string($requestOptions->buffer)) {
-                $resource = Utils::streamFor(Utils::tryFopen($requestOptions->buffer, 'c+b'));
+                $resource = self::streamFor(self::tryFopen($requestOptions->buffer, 'c+b'));
             } else {
-                $resource = Utils::streamFor($requestOptions->buffer);
+                $resource = self::streamFor($requestOptions->buffer);
             }
 
             unset($options['stream']);
@@ -53,5 +57,29 @@ final class Guzzle7Factory implements HttpAsyncClientFactory
         }
 
         return Guzzle7Client::createWithConfig($options);
+    }
+
+    /**
+     * @return resource
+     */
+    private static function tryFopen(string $resource, string $mode)
+    {
+        if (class_exists(Utils::class)) {
+            return Utils::tryFopen($resource, $mode);
+        }
+
+        return try_fopen($resource, $mode);
+    }
+
+    /**
+     * @param string|resource $stream
+     */
+    private static function streamFor($stream): StreamInterface
+    {
+        if (class_exists(Utils::class)) {
+            return Utils::streamFor($stream);
+        }
+
+        return stream_for($stream);
     }
 }
