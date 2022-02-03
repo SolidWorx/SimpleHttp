@@ -14,17 +14,23 @@ declare(strict_types=1);
 namespace SolidWorx\ApiFy\Tests;
 
 use Closure;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
+use Http\Client\Common\Plugin\AuthenticationPlugin;
+use Http\Client\Common\Plugin\BaseUriPlugin;
+use Http\Client\Common\Plugin\QueryDefaultsPlugin;
+use Http\Client\Exception\HttpException;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Message\Authentication\BasicAuth;
+use Http\Message\Authentication\Bearer;
+use JsonException;
 use PHPUnit\Framework\TestCase;
-use SolidWorx\ApiFy\Exception\InvalidArgumentException;
 use SolidWorx\ApiFy\Exception\MissingUrlException;
 use SolidWorx\ApiFy\HttpClient;
-use SolidWorx\ApiFy\Progress;
 use SolidWorx\ApiFy\RequestBuilder;
-use Symfony\Component\HttpClient\Exception\JsonException;
-use Symfony\Component\HttpClient\Exception\ServerException;
-use Symfony\Component\HttpClient\MockHttpClient;
-use Symfony\Component\HttpClient\Response\MockResponse;
-use Symfony\Component\HttpClient\ScopingHttpClient;
+use function file_get_contents;
 
 final class HttpClientTest extends TestCase
 {
@@ -32,269 +38,261 @@ final class HttpClientTest extends TestCase
     {
         $httpClient = HttpClient::create();
 
-        Closure::bind(function (): void {
+        $this->invoke($httpClient, function () {
             /* @var RequestBuilder $this */
-            HttpClientTest::assertNotInstanceOf(ScopingHttpClient::class, $this->client);
-        }, $httpClient, $httpClient)();
+            HttpClientTest::assertEmpty($this->url);
+        });
 
         $httpClient = $httpClient->setBaseUri('https://foo.bar.com');
 
-        Closure::bind(function (): void {
+        $this->invoke($httpClient, function (): void {
             /* @var RequestBuilder $this */
-            HttpClientTest::assertInstanceOf(ScopingHttpClient::class, $this->client);
-
-            Closure::bind(function (): void {
-                /* @var ScopingHttpClient $this */
-                HttpClientTest::assertSame(['https\://foo\.bar\.com/' => ['base_uri' => 'https://foo.bar.com']], $this->defaultOptionsByRegexp);
-            }, $this->client, $this->client)();
-        }, $httpClient, $httpClient)();
+            HttpClientTest::assertEquals(
+                [
+                    new BaseUriPlugin(
+                        Psr17FactoryDiscovery::findUriFactory()->createUri('https://foo.bar.com')
+                    )
+                ],
+                $this->plugins
+            );
+        });
     }
 
     public function testRequestWithBasicAuth(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->basicAuth('foo', 'bar')
+            ->url('https://example.com');
 
-        $httpClient->basicAuth('foo', 'bar')
-            ->url('https://example.com')
-            ->request();
-
-        self::assertSame(['Accept: */*', 'Authorization: Basic Zm9vOmJhcg=='], $mockResponse->getRequestOptions()['headers']);
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals(
+                [
+                    new AuthenticationPlugin(new BasicAuth('foo', 'bar'))
+                ],
+                $this->plugins
+            );
+        });
     }
 
     public function testRequestWithBearerAuth(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->bearerToken('foobar')
+            ->url('https://example.com');
 
-        $httpClient->bearerToken('foobar')
-            ->url('https://example.com')
-            ->request();
-
-        self::assertSame(['Accept: */*', 'Authorization: Bearer foobar'], $mockResponse->getRequestOptions()['headers']);
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals(
+                [
+                    new AuthenticationPlugin(new Bearer('foobar'))
+                ],
+                $this->plugins
+            );
+        });
     }
 
     public function testRequestWithUrl(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com/foo/bar/baz');
 
-        $httpClient->url('https://example.com/foo/bar/baz')
-            ->request();
-
-        self::assertSame('https://example.com/foo/bar/baz', $mockResponse->getRequestUrl());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals(
+                'https://example.com/foo/bar/baz',
+                $this->url
+            );
+        });
     }
 
     public function testDisableSslVerification(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->disableSslVerification();
 
-        $httpClient->url('https://example.com')
-            ->disableSslVerification()
-            ->request();
-
-        $requestOptions = $mockResponse->getRequestOptions();
-        self::assertFalse($requestOptions['verify_peer'] ?? null);
-        self::assertFalse($requestOptions['verify_host'] ?? null);
-    }
-
-    public function testWithBaseUrl(): void
-    {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse))
-            ->setBaseUri('https://foo.bar');
-
-        $httpClient->url('/api/path')
-            ->request();
-
-        self::assertSame('https://foo.bar/api/path', $mockResponse->getRequestUrl());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertFalse($this->options->verifyHost);
+            HttpClientTest::assertFalse($this->options->verifyPeer);
+        });
     }
 
     public function testWithJsonBody(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->json(['foo' => 'bar']);
 
-        $httpClient->url('https://example.com')
-            ->json(['foo' => 'bar'])
-            ->request();
-
-        $requestOptions = $mockResponse->getRequestOptions();
-        self::assertSame(['Content-Type: application/json', 'Accept: */*'], $requestOptions['headers'] ?? []);
-        self::assertSame('{"foo":"bar"}', $requestOptions['body'] ?? '');
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertSame(['Content-Type' => 'application/json', 'Accept' => 'application/json'], $this->options->headers);
+            HttpClientTest::assertSame('{"foo":"bar"}', $this->options->body);
+        });
     }
 
     public function testWithFormDataBody(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->formData(['foo' => 'bar', 'baz' => 'foobar']);
 
-        $httpClient->url('https://example.com')
-            ->formData(['foo' => 'bar', 'baz' => 'foobar'])
-            ->request();
-
-        $requestOptions = $mockResponse->getRequestOptions();
-        self::assertSame('foo=bar&baz=foobar', $requestOptions['body'] ?? '');
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertSame(['Content-Type' => 'application/x-www-form-urlencoded'], $this->options->headers);
+            HttpClientTest::assertSame('foo=bar&baz=foobar', $this->options->body);
+        });
     }
 
     public function testWithQueryParameters(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->query(['foo' => 'bar', 'baz' => 'foobar']);
 
-        $httpClient->url('https://example.com')
-            ->query(['foo' => 'bar', 'baz' => 'foobar'])
-            ->request();
 
-        $requestOptions = $mockResponse->getRequestOptions();
-        self::assertSame('https://example.com/?foo=bar&baz=foobar', $mockResponse->getRequestUrl());
-        self::assertSame(['foo' => 'bar', 'baz' => 'foobar'], $requestOptions['query'] ?? '');
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals(
+                [
+                    new QueryDefaultsPlugin(['foo' => 'bar', 'baz' => 'foobar'])
+                ],
+                $this->plugins
+            );
+        });
     }
 
     public function testWithHeaders(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->header('X-API-TOKEN', 'ABC-DEF');
 
-        $httpClient->url('https://example.com')
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals(
+                [
+                    'X-API-TOKEN' => 'ABC-DEF',
+                ],
+                $this->options->headers
+            );
+        });
+
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
             ->header('X-API-TOKEN', 'ABC-DEF')
-            ->request();
+            ->header('Accept', 'application/json');
 
-        $requestOptions = $mockResponse->getRequestOptions();
-        self::assertSame(['X-API-TOKEN: ABC-DEF', 'Accept: */*'], $requestOptions['headers'] ?? []);
-
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->url('https://example.com')
-            ->header('Accept', 'application/json')
-            ->request();
-
-        $requestOptions = $mockResponse->getRequestOptions();
-        self::assertSame(['Accept: application/json'], $requestOptions['headers'] ?? []);
-    }
-
-    public function testOverwriteHeaders(): void
-    {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->url('https://example.com')
-            ->header('Accept', 'application/json')
-            ->request();
-
-        $requestOptions = $mockResponse->getRequestOptions();
-        self::assertSame(['Accept: application/json'], $requestOptions['headers'] ?? []);
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals(
+                [
+                    'X-API-TOKEN' => 'ABC-DEF',
+                    'Accept' => 'application/json',
+                ],
+                $this->options->headers
+            );
+        });
     }
 
     public function testWithRequestMethods(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->url('https://example.com')
-            ->method('put')
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->method('put');
 
-        self::assertSame('PUT', $mockResponse->getRequestMethod());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('PUT', $this->method);
+        });
     }
 
     public function testWithGetHelperMethods(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->get()
-            ->url('https://example.com')
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->get()
+            ->url('https://example.com');
 
-        self::assertSame('GET', $mockResponse->getRequestMethod());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('GET', $this->method);
+        });
     }
 
     public function testWithPostHelperMethods(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->post()
-            ->url('https://example.com')
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->post()
+            ->url('https://example.com');
 
-        self::assertSame('POST', $mockResponse->getRequestMethod());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('POST', $this->method);
+        });
     }
 
     public function testWithPutHelperMethods(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->put()
-            ->url('https://example.com')
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->put()
+            ->url('https://example.com');
 
-        self::assertSame('PUT', $mockResponse->getRequestMethod());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('PUT', $this->method);
+        });
     }
 
     public function testWithPatchHelperMethods(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->patch()
-            ->url('https://example.com')
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->patch()
+            ->url('https://example.com');
 
-        self::assertSame('PATCH', $mockResponse->getRequestMethod());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('PATCH', $this->method);
+        });
     }
 
     public function testWithOptionsHelperMethods(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->options()
-            ->url('https://example.com')
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->options()
+            ->url('https://example.com');
 
-        self::assertSame('OPTIONS', $mockResponse->getRequestMethod());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('OPTIONS', $this->method);
+        });
     }
 
     public function testWithDeleteHelperMethods(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->delete()
-            ->url('https://example.com')
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->delete()
+            ->url('https://example.com');
 
-        self::assertSame('DELETE', $mockResponse->getRequestMethod());
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('DELETE', $this->method);
+        });
     }
 
     public function testWithProgress(): void
     {
-        $progressCalled = false;
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->url('https://example.com')
+        $progressFunction = static function () {};
+
+        $httpClient = HttpClient::create($this->getMockGuzzleClient(new Response()))
+            ->url('https://example.com')
             ->header('Accept', 'application/json')
-            ->progress(static function (Progress $progress) use (&$progressCalled): void {
-                self::assertSame(0, $progress->getDownloaded());
-                self::assertSame(0, $progress->getTotalSize());
-                $info = $progress->getInfo();
+            ->progress($progressFunction);
 
-                self::assertContains($info['http_code'] ?? null, [0, 200]);
-
-                unset($info['start_time'], $info['total_time'], $info['http_code']);
-
-                self::assertEquals([
-                    'response_headers' => [],
-                    'error' => null,
-                    'canceled' => false,
-                    'redirect_count' => 0,
-                    'redirect_url' => null,
-                    'http_method' => 'GET',
-                    'user_data' => null,
-                    'url' => 'https://example.com/',
-                ], $info);
-
-                $progressCalled = true;
-            })
-            ->request();
-
-        self::assertTrue($progressCalled);
+        $this->invoke($httpClient, function () use ($progressFunction): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertSame($progressFunction, $this->options->onProgress);
+        });
     }
 
     public function testItThrowsExceptionWithAMissingUrl(): void
@@ -313,12 +311,10 @@ final class HttpClientTest extends TestCase
             $file = tempnam(sys_get_temp_dir(), 'api');
             assert(false !== $file);
 
-            $mockResponse = new MockResponse('foo bar baz');
-            HttpClient::create(new MockHttpClient($mockResponse))
+            HttpClient::create($this->getMockGuzzleClient(new Response(200, [], 'foo bar baz')))
                 ->url('https://example.com')
-                ->streamToFile($file)
-                ->request()
-                ->getContent();
+                ->saveToFile($file)
+                ->request();
 
             self::assertFileExists($file);
             self::assertSame('foo bar baz', file_get_contents($file));
@@ -334,8 +330,7 @@ final class HttpClientTest extends TestCase
             assert(false !== $file);
             file_put_contents($file, 'a b c 1 2 3');
 
-            $mockResponse = new MockResponse('foo bar baz');
-            $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+            $httpClient = HttpClient::create($this->getMockGuzzleClient(new Response(200, [], 'foo bar baz')));
 
             $httpClient->url('https://example.com')
                 ->appendToFile($file)
@@ -351,171 +346,84 @@ final class HttpClientTest extends TestCase
 
     public function testUploadFile(): void
     {
-        try {
-            $file = tempnam(sys_get_temp_dir(), 'api');
-            assert(false !== $file);
-            file_put_contents($file, 'a b c 1 2 3');
-
-            $mockResponse = new MockResponse('', ['size_upload' => 0.0]);
-            $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-            $response = $httpClient
-                ->url('https://example.com')
-                ->uploadFile('field', $file)
-                ->request();
-
-            $headers = $mockResponse->getRequestOptions()['headers'];
-            self::assertNotEmpty($headers);
-            self::assertStringStartsWith('content-type: multipart/form-data; boundary=', $headers[0]);
-            self::assertSame('Accept: */*', $headers[1]);
-            $body = $mockResponse->getRequestOptions()['body'];
-            self::assertInstanceOf(Closure::class, $body);
-            self::assertSame(182.0, $response->getInfo()['size_upload']);
-        } finally {
-            unlink($file);
-        }
-    }
-
-    public function testUploadFileWithFormData(): void
-    {
-        try {
-            $file = tempnam(sys_get_temp_dir(), 'api');
-            assert(false !== $file);
-            file_put_contents($file, 'a b c 1 2 3');
-
-            $mockResponse = new MockResponse('', ['size_upload' => 0.0]);
-            $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-            $response = $httpClient
-                ->url('https://example.com')
-                ->formData(['foo' => 'bar'])
-                ->uploadFile('field', $file)
-                ->request();
-
-            $headers = $mockResponse->getRequestOptions()['headers'];
-            self::assertNotEmpty($headers);
-            self::assertStringStartsWith('content-type: multipart/form-data; boundary=', $headers[0]);
-            self::assertSame('Accept: */*', $headers[1]);
-            $body = $mockResponse->getRequestOptions()['body'];
-            self::assertInstanceOf(Closure::class, $body);
-            self::assertSame(319.0, $response->getInfo()['size_upload']);
-        } finally {
-            unlink($file);
-        }
-    }
-
-    public function testUploadFileWithStringBody(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('File uploads cannot be used without an array body');
-
-        HttpClient::create(new MockHttpClient())
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com')
-            ->body('foo')
-            ->uploadFile('field', __FILE__)
-            ->request();
-    }
+            ->uploadFile('field', __FILE__);
 
-    public function testUploadFileWithJson(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('File uploads cannot be used without an array body');
-
-        HttpClient::create(new MockHttpClient())
-            ->url('https://example.com')
-            ->json(['foo' => 'bar'])
-            ->uploadFile('field', __FILE__)
-            ->request();
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertSame(file_get_contents(__FILE__), $this->options->files['field']->getBody());
+        });
     }
 
     public function testHttpVersion1(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->url('https://example.com')
-            ->httpVersion(HttpClient::HTTP_VERSION_1)
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->httpVersion(HttpClient::HTTP_VERSION_1);
 
-        self::assertSame('1.1', $mockResponse->getRequestOptions()['http_version']);
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('1.1', $this->options->httpVersion);
+        });
     }
 
     public function testHttpVersion2(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $httpClient->url('https://example.com')
-            ->httpVersion(HttpClient::HTTP_VERSION_2)
-            ->request();
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->httpVersion(HttpClient::HTTP_VERSION_2);
 
-        self::assertSame('2.0', $mockResponse->getRequestOptions()['http_version']);
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('2.0', $this->options->httpVersion);
+        });
+
+        $httpClient = HttpClient::create($this->getMockGuzzleClient())
+            ->url('https://example.com')
+            ->http2();
+
+        $this->invoke($httpClient, function (): void {
+            /* @var RequestBuilder $this */
+            HttpClientTest::assertEquals('2.0', $this->options->httpVersion);
+        });
     }
 
     public function testResponseInformation(): void
     {
-        $mockResponse = new MockResponse();
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient(new Response()));
         $response = $httpClient
             ->url('http://example.com')
             ->request();
 
-        self::assertFalse($response->isCanceled());
-        self::assertNull($response->getError());
-        self::assertNull($response->getError());
         self::assertSame(200, $response->getStatusCode());
         self::assertSame([], $response->getHeaders());
         self::assertSame('', $response->getContent());
-        self::assertSame(200, $response->getHttpCode());
-        self::assertSame('GET', $response->getHttpMethod());
-        self::assertSame(0, $response->getRedirectCount());
-        self::assertNull($response->getRedirectUrl());
-        self::assertSame([], $response->getResponseHeaders());
-        self::assertGreaterThan(0, $response->getStartTime());
-        self::assertSame('http://example.com/', $response->getUrl());
-        self::assertNull($response->getUserData());
-        self::assertNotEmpty($response->getInfo());
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame([], $response->getHeaders());
 
         try {
-            $response->toArray(false);
+            $response->toArray();
             self::fail('JsonException was not thrown');
         } catch (JsonException $e) {
-            self::assertSame('Response body is empty.', $e->getMessage());
+            self::assertSame('Syntax error', $e->getMessage());
         }
-
-        $response->cancel();
-        self::assertTrue($response->isCanceled());
-        self::assertSame('Response has been canceled.', $response->getError());
     }
 
     public function testResponseError(): void
     {
-        $mockResponse = new MockResponse('[]', ['http_code' => 500]);
-        $httpClient = HttpClient::create(new MockHttpClient($mockResponse));
-        $response = $httpClient
-            ->url('http://example.com')
-            ->request();
-
-        self::assertSame(500, $response->getStatusCode());
-
-        self::assertSame([], $response->getHeaders(false));
+        $httpClient = HttpClient::create($this->getMockGuzzleClient(new Response(500)));
         try {
-            $response->getHeaders();
-            self::fail('Exception not thrown for $response->getHeaders()');
-        } catch (ServerException $e) {
-            self::assertSame('HTTP 500 returned for "http://example.com/".', $e->getMessage());
-        }
-
-        self::assertSame('[]', $response->getContent(false));
-        try {
-            $response->getContent();
-            self::fail('Exception not thrown for $response->getContent()');
-        } catch (ServerException $e) {
-            self::assertSame('HTTP 500 returned for "http://example.com/".', $e->getMessage());
-        }
-
-        self::assertEmpty($response->toArray(false));
-        try {
-            $response->toArray();
-            self::fail('Exception not thrown for $response->toArray()');
-        } catch (ServerException $e) {
-            self::assertSame('HTTP 500 returned for "http://example.com/".', $e->getMessage());
+            $httpClient
+                ->url('http://example.com')
+                ->request();
+        } catch (HttpException $e) {
+            self::assertSame(500, $e->getCode());
+            self::assertSame('Server error: `GET http://example.com` resulted in a `500 Internal Server Error` response', $e->getMessage());
+            self::assertSame(500, $e->getResponse()->getStatusCode());
+            self::assertSame('Internal Server Error', $e->getResponse()->getReasonPhrase());
+            self::assertSame([], $e->getResponse()->getHeaders());
+            self::assertSame('', (string) $e->getResponse()->getBody());
         }
     }
 
@@ -538,8 +446,8 @@ final class HttpClientTest extends TestCase
         self::assertObjectIsNotTheSame($httpClient, $httpClient->post());
         self::assertObjectIsNotTheSame($httpClient, $httpClient->disableSslVerification());
         self::assertObjectIsNotTheSame($httpClient, $httpClient->query());
-        self::assertObjectIsNotTheSame($httpClient, $httpClient->streamToFile(''));
-        self::assertObjectIsNotTheSame($httpClient, $httpClient->appendToFile(''));
+        self::assertObjectIsNotTheSame($httpClient, $httpClient->saveToFile(__FILE__));
+        self::assertObjectIsNotTheSame($httpClient, $httpClient->appendToFile(__FILE__));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->uploadFile('', __FILE__));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->httpVersion(''));
     }
@@ -555,5 +463,23 @@ final class HttpClientTest extends TestCase
 
         self::assertNotSame($expected, $actual);
         self::assertNotSame($getOptionsProperty($expected), $getOptionsProperty($actual));
+    }
+
+    private function invoke(RequestBuilder $httpClient, callable $assert): void
+    {
+        $closure = Closure::bind($assert, $httpClient, $httpClient);
+
+        if ($closure === false) {
+            $this->fail('Closure could not be bound to RequestBuilder');
+        }
+
+        $closure();
+    }
+
+    private function getMockGuzzleClient(Response ...$response): Client
+    {
+        return new Client([
+            'handler' => HandlerStack::create(new MockHandler($response))
+        ]);
     }
 }

@@ -14,13 +14,26 @@ declare(strict_types=1);
 namespace SolidWorx\ApiFy\Traits;
 
 use Closure;
+use Http\Client\Common\Plugin;
+use Http\Client\Common\Plugin\BaseUriPlugin;
+use Http\Client\Common\Plugin\QueryDefaultsPlugin;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Message\Authentication\BasicAuth;
+use Http\Message\Authentication\Bearer;
+use SolidWorx\ApiFy\Exception\InvalidArgumentException;
 use SolidWorx\ApiFy\HttpClient;
 use SolidWorx\ApiFy\Progress;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
+use function fopen;
 
 trait HttpOptionsTrait
 {
+    /**
+     * @var Plugin[]
+     */
+    private array $plugins = [];
+
     /**
      * @return $this
      */
@@ -39,7 +52,8 @@ trait HttpOptionsTrait
     public function basicAuth(string $username, ?string $password = null): self
     {
         $httpClient = clone $this;
-        $httpClient->options = $httpClient->options->basicAuth($username, $password);
+
+        $httpClient->plugins[] = new Plugin\AuthenticationPlugin(new BasicAuth($username, (string) $password));
 
         return $httpClient;
     }
@@ -50,7 +64,7 @@ trait HttpOptionsTrait
     public function bearerToken(string $token): self
     {
         $httpClient = clone $this;
-        $httpClient->options = $httpClient->options->bearerAuth($token);
+        $httpClient->plugins[] = new Plugin\AuthenticationPlugin(new Bearer($token));
 
         return $httpClient;
     }
@@ -75,7 +89,7 @@ trait HttpOptionsTrait
     public function query(array $queryParams = []): self
     {
         $httpClient = clone $this;
-        $httpClient->options = $httpClient->options->query($queryParams);
+        $httpClient->plugins[] = new QueryDefaultsPlugin($queryParams);
 
         return $httpClient;
     }
@@ -106,9 +120,9 @@ trait HttpOptionsTrait
     {
         $httpClient = clone $this;
 
-        $httpClient->options = $httpClient->options->json($json);
-
-        return $httpClient;
+        return $httpClient->header('Content-Type', 'application/json')
+            ->header('Accept', 'application/json')
+            ->body(\json_encode($json, JSON_THROW_ON_ERROR));
     }
 
     /**
@@ -120,27 +134,21 @@ trait HttpOptionsTrait
     {
         $httpClient = clone $this;
 
-        $onProgress = static function (int $dlNow, int $dlSize, array $info) use ($progress): void {
-            $progress(new Progress($dlNow, $dlSize, $info));
-        };
-
-        $httpClient->options = $httpClient->options->onProgress($onProgress);
+        $httpClient->options = $httpClient->options->onProgress($progress);
 
         return $httpClient;
     }
 
     /**
+     * @param string|resource $filePath
+     *
      * @return $this
      */
-    public function streamToFile(string $filePath): self
+    public function saveToFile($filePath): self
     {
         $httpClient = clone $this;
 
-        $buffer = static function (array $headers) use ($filePath) {
-            return fopen($filePath, 'c+b');
-        };
-
-        $httpClient->options = $httpClient->options->buffer($buffer);
+        $httpClient->options = $httpClient->options->buffer($filePath);
 
         return $httpClient;
     }
@@ -152,11 +160,13 @@ trait HttpOptionsTrait
     {
         $httpClient = clone $this;
 
-        $buffer = static function (array $headers) use ($filePath) {
-            return fopen($filePath, 'a+b');
-        };
+        $resource = fopen($filePath, 'a+b');
 
-        $httpClient->options = $httpClient->options->buffer($buffer);
+        if (false === $resource) {
+            throw new InvalidArgumentException(sprintf('Could not open file "%s" for writing', $filePath));
+        }
+
+        $httpClient->options = $httpClient->options->buffer($resource);
 
         return $httpClient;
     }
@@ -180,7 +190,7 @@ trait HttpOptionsTrait
     public function httpVersion(string $httpVersion): self
     {
         $httpClient = clone $this;
-        $httpClient->options = $httpClient->options->httpVersion($httpVersion);
+        $httpClient->options->httpVersion = $httpVersion;
 
         return $httpClient;
     }
@@ -191,7 +201,20 @@ trait HttpOptionsTrait
     public function http2(): self
     {
         $httpClient = clone $this;
-        $httpClient->options = $httpClient->options->httpVersion(HttpClient::HTTP_VERSION_2);
+        $httpClient->options->httpVersion = HttpClient::HTTP_VERSION_2;
+
+        return $httpClient;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setBaseUri(string $url): self
+    {
+        $httpClient = clone $this;
+        $httpClient->plugins[] = new BaseUriPlugin(
+            Psr17FactoryDiscovery::findUriFactory()->createUri($url)
+        );
 
         return $httpClient;
     }

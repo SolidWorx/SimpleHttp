@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace SolidWorx\ApiFy;
 
-use Symfony\Component\HttpClient\HttpClient as SymfonyClient;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Psr\Http\Client\ClientInterface;
 
 final class HttpClient
 {
@@ -31,21 +30,21 @@ final class HttpClient
     public const METHOD_TRACE = 'TRACE';
     public const METHOD_CONNECT = 'CONNECT';
 
-    private HttpClientInterface $client;
+    private ?ClientInterface $client = null;
 
-    public function __construct(?HttpClientInterface $client = null)
+    public function __construct(?ClientInterface $client = null)
     {
-        $this->client = $client ?? SymfonyClient::create();
+        $this->client = $client;
     }
 
-    public static function create(?HttpClientInterface $client = null): RequestBuilder
+    public static function create(?ClientInterface $client = null): RequestBuilder
     {
         $self = new self($client);
 
         return new RequestBuilder($self->client);
     }
 
-    public static function createForBaseUrl(string $url, ?HttpClientInterface $client = null): RequestBuilder
+    public static function createForBaseUrl(string $url, ?ClientInterface $client = null): RequestBuilder
     {
         $self = new self($client);
 

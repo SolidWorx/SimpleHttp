@@ -13,178 +13,147 @@ declare(strict_types=1);
 
 namespace SolidWorx\ApiFy;
 
-use Closure;
 use SolidWorx\ApiFy\Exception\InvalidArgumentException;
 use Symfony\Component\Mime\Header\HeaderInterface;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Traversable;
+use function array_merge;
+use function http_build_query;
+use function is_array;
+use function is_string;
 
 final class RequestOptions
 {
-    /** @var array */
-    private $files = [];
+    public array $files = [];
 
-    /** @var string|null */
-    private $auth_basic = HttpClientInterface::OPTIONS_DEFAULTS['auth_basic'];
+    public ?string $authBasic = null;
 
-    /** @var string|null */
-    private $auth_bearer = HttpClientInterface::OPTIONS_DEFAULTS['auth_bearer'];
+    public ?string $authBearer = null;
 
-    /** @var array */
-    private $query = HttpClientInterface::OPTIONS_DEFAULTS['query'];
+    public array $query = [];
 
-    /** @var array */
-    private $headers = HttpClientInterface::OPTIONS_DEFAULTS['headers'];
+    public array $headers = [];
 
-    /** @var string|array|Closure|resource|Traversable */
-    private $body = HttpClientInterface::OPTIONS_DEFAULTS['body'];
+    public string $body = '';
 
     /** @var mixed */
-    private $json = HttpClientInterface::OPTIONS_DEFAULTS['json'];
+    public $json = null;
 
     /** @var mixed */
-    private $user_data = HttpClientInterface::OPTIONS_DEFAULTS['user_data'];
+    public $userData = null;
 
-    /** @var int|null */
-    private $max_redirects = HttpClientInterface::OPTIONS_DEFAULTS['max_redirects'];
+    public ?int $maxRedirects = null;
 
-    /** @var string|null */
-    private $http_version = HttpClientInterface::OPTIONS_DEFAULTS['http_version'];
+    public string $httpVersion = HttpClient::HTTP_VERSION_1;
 
-    /** @var string|null */
-    private $base_uri = HttpClientInterface::OPTIONS_DEFAULTS['base_uri'];
+    public ?string $baseUri = null;
 
-    /** @var bool|resource|Closure */
-    private $buffer = HttpClientInterface::OPTIONS_DEFAULTS['buffer'];
+    /** @var string|resource|null */
+    public $buffer = null;
 
-    /** @var callable(int, int, array)|null */
-    private $on_progress = HttpClientInterface::OPTIONS_DEFAULTS['on_progress'];
+    /** @var callable(Progress): void|null */
+    public $onProgress = null;
 
-    /** @var array */
-    private $resolve = HttpClientInterface::OPTIONS_DEFAULTS['resolve'];
+    public ?array $resolve = null;
 
-    /** @var string|null */
-    private $proxy = HttpClientInterface::OPTIONS_DEFAULTS['proxy'];
+    public ?string $proxy = null;
 
-    /** @var string|null */
-    private $no_proxy = HttpClientInterface::OPTIONS_DEFAULTS['no_proxy'];
+    public ?string $noProxy = null;
 
-    /** @var string|null */
-    private $timeout = HttpClientInterface::OPTIONS_DEFAULTS['timeout'];
+    public ?string $timeout = null;
 
-    /** @var float */
-    private $max_duration = HttpClientInterface::OPTIONS_DEFAULTS['max_duration'];
+    public ?float $maxDuration = null;
 
-    /** @var string|null */
-    private $bindto = HttpClientInterface::OPTIONS_DEFAULTS['bindto'];
+    public ?string $bindTo = null;
 
-    /** @var bool */
-    private $verify_peer = HttpClientInterface::OPTIONS_DEFAULTS['verify_peer'];
+    public ?bool $verifyPeer = null;
 
-    /** @var bool */
-    private $verify_host = HttpClientInterface::OPTIONS_DEFAULTS['verify_host'];
+    public ?bool $verifyHost = null;
 
-    /** @var string|null */
-    private $cafile = HttpClientInterface::OPTIONS_DEFAULTS['cafile'];
+    public ?string $cafile = null;
 
-    /** @var string|null */
-    private $capath = HttpClientInterface::OPTIONS_DEFAULTS['capath'];
+    public ?string $capath = null;
 
-    /** @var string|null */
-    private $local_cert = HttpClientInterface::OPTIONS_DEFAULTS['local_cert'];
+    public ?string $localCert = null;
 
-    /** @var string|null */
-    private $local_pk = HttpClientInterface::OPTIONS_DEFAULTS['local_pk'];
+    public ?string $localPk = null;
 
-    /** @var string|null */
-    private $passphrase = HttpClientInterface::OPTIONS_DEFAULTS['passphrase'];
+    public ?string $passphrase = null;
 
-    /** @var string|null */
-    private $ciphers = HttpClientInterface::OPTIONS_DEFAULTS['ciphers'];
+    public ?string $ciphers = null;
 
-    /** @var string|null */
-    private $peer_fingerprint = HttpClientInterface::OPTIONS_DEFAULTS['peer_fingerprint'];
+    public ?string $peerFingerprint = null;
 
-    /** @var bool */
-    private $capture_peer_cert_chain = HttpClientInterface::OPTIONS_DEFAULTS['capture_peer_cert_chain'];
+    public ?bool $capturePeerCertChain = null;
 
-    /** @var array */
-    private $extra = HttpClientInterface::OPTIONS_DEFAULTS['extra'];
+    public ?array $extra = null;
 
     public function verifyHost(bool $verifyHost): self
     {
-        $this->verify_host = $verifyHost;
+        $this->verifyHost = $verifyHost;
 
         return $this;
     }
 
     public function verifyPeer(bool $verifyPeer): self
     {
-        $this->verify_peer = $verifyPeer;
+        $this->verifyPeer = $verifyPeer;
 
         return $this;
     }
 
     public function basicAuth(string $username, ?string $password = null): self
     {
-        $this->auth_basic = \implode(':', [$username, $password]);
+        $this->authBasic = \implode(':', [$username, $password]);
 
         return $this;
     }
 
     public function bearerAuth(string $token): self
     {
-        $this->auth_bearer = $token;
+        $this->authBearer = $token;
 
         return $this;
     }
 
-    public function build(): array
+    public function getBody(): string
     {
-        $options = [];
 
         if ([] !== $this->files) {
-            if ((!\is_array($this->body) && '' !== $this->body) || null !== $this->json) {
-                throw new InvalidArgumentException('File uploads cannot be used without an array body');
-            }
-
-            $body = \is_array($this->body) ? $this->body : [];
+            $body = $this->body;
             $this->body = '';
 
-            $formData = new FormDataPart(\array_merge($body, $this->files));
+            $formData = new FormDataPart(array_merge((array) $body, $this->files));
 
             $headers = $formData->getPreparedHeaders();
 
+            /** @var string $name */
             foreach ($headers->getNames() as $name) {
                 /** @var HeaderInterface $header */
                 $header = $headers->get($name);
                 $this->addHeader($name, $header->getBodyAsString());
             }
 
-            $options['body'] = $formData->bodyToIterable();
+            return $formData->bodyToString();
         }
 
-        foreach (get_object_vars($this) as $key => $value) {
-            if (!\array_key_exists($key, HttpClientInterface::OPTIONS_DEFAULTS)) {
-                continue;
-            }
-
-            if ($value !== HttpClientInterface::OPTIONS_DEFAULTS[$key]) {
-                $options[$key] = $value;
-            }
-        }
-
-        return $options;
+        return $this->body;
     }
 
     /**
-     * @param string|array|Closure|resource|Traversable $body
+     * @param mixed $body
      */
     public function body($body): self
     {
-        $this->body = $body;
+        if (is_array($body)) {
+            $this->body = http_build_query($body, '', '&');
+            $this->addHeader('Content-Type', 'application/x-www-form-urlencoded');
+        } elseif (is_string($body)) {
+            $this->body = $body;
+        } else {
+            throw new InvalidArgumentException('Invalid body, expected string or array');
+        }
+
 
         return $this;
     }
@@ -210,15 +179,18 @@ final class RequestOptions
         return $this;
     }
 
+    /**
+     * @param callable(Progress): void $progress
+     */
     public function onProgress(callable $progress): self
     {
-        $this->on_progress = $progress;
+        $this->onProgress = $progress;
 
         return $this;
     }
 
     /**
-     * @param bool|resource|Closure $resource
+     * @param string|resource $resource
      */
     public function buffer($resource): self
     {
@@ -236,7 +208,7 @@ final class RequestOptions
 
     public function httpVersion(string $httpVersion): self
     {
-        $this->http_version = $httpVersion;
+        $this->httpVersion = $httpVersion;
 
         return $this;
     }

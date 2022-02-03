@@ -13,25 +13,28 @@ declare(strict_types=1);
 
 namespace SolidWorx\ApiFy;
 
+use Http\Client\Common\PluginClient;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\UriInterface;
+use SolidWorx\ApiFy\Discovery\HttpAsyncClientDiscovery;
 use SolidWorx\ApiFy\Exception\MissingUrlException;
 use SolidWorx\ApiFy\Traits\HttpMethodsTrait;
 use SolidWorx\ApiFy\Traits\HttpOptionsTrait;
-use Symfony\Component\HttpClient\ScopingHttpClient;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
+use function in_array;
 
 final class RequestBuilder
 {
     use HttpOptionsTrait;
     use HttpMethodsTrait;
 
-    /** @var string */
-    private $url = '';
+    private ?UriInterface $url = null;
+    private RequestOptions $options;
+    private ?ClientInterface $client = null;
 
-    private $options;
-
-    private $client;
-
-    public function __construct(HttpClientInterface $client)
+    public function __construct(?ClientInterface $client = null)
     {
         $this->options = new RequestOptions();
         $this->client = $client;
@@ -45,34 +48,51 @@ final class RequestBuilder
     public function url(string $url): self
     {
         $request = clone $this;
-        $request->url = $url;
+        $request->url = Psr17FactoryDiscovery::findUriFactory()->createUri($url);
 
         return $request;
     }
 
-    public function setBaseUri(string $url): self
+    /**
+     * @throws Throwable
+     */
+    public function request(): Response
     {
-        $builder = clone $this;
-        $builder->client = ScopingHttpClient::forBaseUri($builder->client, $url);
+        $client = HttpAsyncClientDiscovery::find($this->options, $this->client);
 
-        return $builder;
+        $pluginClient = new PluginClient($client, $this->plugins);
+
+        return new Response($pluginClient->sendAsyncRequest($this->build()));
     }
 
-    private function build(): array
+    private function build(): RequestInterface
     {
-        if ('' === $this->url) {
+        if (null === $this->url) {
             throw new MissingUrlException();
         }
 
-        return [
+        $request = Psr17FactoryDiscovery::findRequestFactory()->createRequest(
             $this->method,
-            $this->url,
-            $this->options->build(),
-        ];
-    }
+            $this->url
+        )
+            ->withProtocolVersion($this->options->httpVersion);
 
-    public function request(): Response
-    {
-        return new Response($this->client->request(...$this->build()));
+        $body = $this->options->getBody();
+
+        if ($body !== '') {
+            if (in_array($this->method, [HttpClient::METHOD_GET, HttpClient::METHOD_HEAD], true)) {
+                // When a body is set, but the request is a method that does not require a body, then we default to a POST request
+                $request = $request->withMethod(HttpClient::METHOD_POST);
+            }
+
+            $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+            $request = $request->withBody($streamFactory->createStream($this->options->getBody()));
+        }
+
+        foreach ($this->options->headers as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
+        return $request;
     }
 }

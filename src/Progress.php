@@ -19,16 +19,10 @@ final class Progress
 
     private int $totalSize;
 
-    /**
-     * @var array<string, string|int|bool>
-     */
-    private array $info;
-
-    public function __construct(int $downloaded, int $totalSize, array $info)
+    public function __construct(int $downloaded, int $totalSize)
     {
         $this->downloaded = $downloaded;
         $this->totalSize = $totalSize;
-        $this->info = $info;
     }
 
     public function getDownloaded(): int
@@ -39,10 +33,5 @@ final class Progress
     public function getTotalSize(): int
     {
         return $this->totalSize;
-    }
-
-    public function getInfo(): array
-    {
-        return $this->info;
     }
 }

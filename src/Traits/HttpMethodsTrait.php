@@ -17,8 +17,7 @@ use SolidWorx\ApiFy\HttpClient;
 
 trait HttpMethodsTrait
 {
-    /** @var string */
-    private $method = HttpClient::METHOD_GET;
+    private string $method = HttpClient::METHOD_GET;
 
     /**
      * @return $this

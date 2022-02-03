@@ -13,98 +13,180 @@ declare(strict_types=1);
 
 namespace SolidWorx\ApiFy;
 
-use Symfony\Contracts\HttpClient\ResponseInterface;
+use Exception;
+use Http\Promise\Promise;
+use JsonException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
+use SolidWorx\ApiFy\Exception\NotImplementedException;
+use function is_array;
+use function json_decode;
+use const JSON_THROW_ON_ERROR;
 
 final class Response implements ResponseInterface
 {
-    /** @var ResponseInterface */
-    private $response;
+    private Promise $response;
 
-    public function __construct(ResponseInterface $response)
+    public function __construct(Promise $response)
     {
         $this->response = $response;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getStatusCode(): int
     {
-        return $this->response->getStatusCode();
-    }
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
 
-    public function getHeaders(bool $throw = true): array
-    {
-        return $this->response->getHeaders($throw);
-    }
-
-    public function getContent(bool $throw = true): string
-    {
-        return $this->response->getContent($throw);
-    }
-
-    public function toArray(bool $throw = true): array
-    {
-        return $this->response->toArray($throw);
-    }
-
-    public function cancel(): void
-    {
-        $this->response->cancel();
-    }
-
-    public function getInfo(string $type = null): array
-    {
-        return $this->response->getInfo($type);
-    }
-
-    public function isCanceled(): bool
-    {
-        return $this->response->getInfo('canceled');
-    }
-
-    public function getError(): ?string
-    {
-        return $this->response->getInfo('error');
-    }
-
-    public function getHttpCode(): int
-    {
-        return $this->response->getInfo('http_code');
-    }
-
-    public function getHttpMethod(): string
-    {
-        return $this->response->getInfo('http_method');
-    }
-
-    public function getRedirectCount(): int
-    {
-        return $this->response->getInfo('redirect_count');
-    }
-
-    public function getRedirectUrl(): ?string
-    {
-        return $this->response->getInfo('redirect_url');
-    }
-
-    public function getResponseHeaders(): array
-    {
-        return $this->response->getInfo('response_headers');
-    }
-
-    public function getStartTime(): float
-    {
-        return $this->response->getInfo('start_time');
-    }
-
-    public function getUrl(): string
-    {
-        return $this->response->getInfo('url');
+        return $response->getStatusCode();
     }
 
     /**
-     * @return mixed
+     * @throws Exception
      */
-    public function getUserData()
+    public function getHeaders(): array
     {
-        return $this->response->getInfo('user_data');
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        return $response->getHeaders();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getContent(): string
+    {
+        return $this->getBody()->getContents();
+    }
+
+    /**
+     * @throws JsonException|Exception
+     */
+    public function toArray(): array
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        $body = $response->getBody()->getContents();
+        $result = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+
+        if (!is_array($result)) {
+            throw new JsonException('Unable to decode JSON response');
+        }
+
+        return $result;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getProtocolVersion(): string
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        return $response->getProtocolVersion();
+    }
+
+    public function withProtocolVersion($version): Response
+    {
+        throw new NotImplementedException(__METHOD__);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function hasHeader($name): bool
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        return $response->hasHeader($name);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getHeader($name): array
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        return $response->getHeader($name);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getHeaderLine($name): string
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        return $response->getHeaderLine($name);
+    }
+
+    public function withHeader($name, $value): Response
+    {
+        throw new NotImplementedException(__METHOD__);
+    }
+
+    public function withAddedHeader($name, $value): Response
+    {
+        throw new NotImplementedException(__METHOD__);
+    }
+
+    public function withoutHeader($name): Response
+    {
+        throw new NotImplementedException(__METHOD__);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getBody(): StreamInterface
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        return $response->getBody();
+    }
+
+    public function withBody(StreamInterface $body): Response
+    {
+        throw new NotImplementedException(__METHOD__);
+    }
+
+    public function withStatus($code, $reasonPhrase = ''): Response
+    {
+        throw new NotImplementedException(__METHOD__);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getReasonPhrase(): string
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->response->wait();
+
+        return $response->getReasonPhrase();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function __destruct()
+    {
+        if ($this->response->getState() !== Promise::FULFILLED) {
+            /** @var ResponseInterface $response */
+            $response = $this->response->wait();
+            $response->getBody()->close();
+        }
     }
 }
+
+
