@@ -89,6 +89,7 @@ final class RequestBuilder
             $request = $request->withBody($streamFactory->createStream($this->options->getBody()));
         }
 
+        /** @var string $value */
         foreach ($this->options->headers as $name => $value) {
             $request = $request->withHeader($name, $value);
         }

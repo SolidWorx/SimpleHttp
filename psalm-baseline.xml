@@ -1,2 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.4.1@9fd7a7d885b3a216cff8dec9d8c21a132f275224" />
+<files psalm-version="4.19.0@a2ad69ae4f5ab1f7d225a8dc4e2ec2d9415ed599">
+  <file src="src/Factory/Guzzle7Factory.php">
+    <DeprecatedMethod occurrences="1">
+      <code>getConfig</code>
+    </DeprecatedMethod>
+    <MixedArgument occurrences="1">
+      <code>$client-&gt;getConfig()</code>
+    </MixedArgument>
+  </file>
+  <file src="src/RequestBuilder.php">
+    <MixedArgumentTypeCoercion occurrences="1">
+      <code>$name</code>
+    </MixedArgumentTypeCoercion>
+  </file>
+  <file src="src/RequestOptions.php">
+    <MixedArgumentTypeCoercion occurrences="1">
+      <code>array_merge((array) $body, $this-&gt;files)</code>
+    </MixedArgumentTypeCoercion>
+  </file>
+  <file src="tests/HttpClientTest.php">
+    <MissingClosureReturnType occurrences="1">
+      <code>static function (RequestBuilder $object) {</code>
+    </MissingClosureReturnType>
+    <MixedArgument occurrences="1">
+      <code>$this-&gt;options-&gt;files['field']-&gt;getBody()</code>
+    </MixedArgument>
+    <MixedArrayAccess occurrences="1">
+      <code>$this-&gt;options-&gt;files['field']</code>
+    </MixedArrayAccess>
+    <MixedMethodCall occurrences="1">
+      <code>getBody</code>
+    </MixedMethodCall>
+    <MixedPropertyFetch occurrences="13">
+      <code>$this-&gt;options-&gt;body</code>
+      <code>$this-&gt;options-&gt;body</code>
+      <code>$this-&gt;options-&gt;files</code>
+      <code>$this-&gt;options-&gt;headers</code>
+      <code>$this-&gt;options-&gt;headers</code>
+      <code>$this-&gt;options-&gt;headers</code>
+      <code>$this-&gt;options-&gt;headers</code>
+      <code>$this-&gt;options-&gt;httpVersion</code>
+      <code>$this-&gt;options-&gt;httpVersion</code>
+      <code>$this-&gt;options-&gt;httpVersion</code>
+      <code>$this-&gt;options-&gt;onProgress</code>
+      <code>$this-&gt;options-&gt;verifyHost</code>
+      <code>$this-&gt;options-&gt;verifyPeer</code>
+    </MixedPropertyFetch>
+    <UndefinedThisPropertyFetch occurrences="23">
+      <code>$this-&gt;method</code>
+      <code>$this-&gt;method</code>
+      <code>$this-&gt;method</code>
+      <code>$this-&gt;method</code>
+      <code>$this-&gt;method</code>
+      <code>$this-&gt;method</code>
+      <code>$this-&gt;method</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;options</code>
+      <code>$this-&gt;plugins</code>
+      <code>$this-&gt;plugins</code>
+      <code>$this-&gt;plugins</code>
+      <code>$this-&gt;plugins</code>
+      <code>$this-&gt;url</code>
+      <code>$this-&gt;url</code>
+    </UndefinedThisPropertyFetch>
+  </file>
+</files>

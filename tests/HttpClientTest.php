@@ -26,10 +26,13 @@ use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
 use JsonException;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use SolidWorx\SimpleHttp\Exception\MissingUrlException;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\RequestBuilder;
+use SolidWorx\SimpleHttp\RequestOptions;
+use function file_exists;
 use function file_get_contents;
 
 final class HttpClientTest extends TestCase
@@ -38,16 +41,14 @@ final class HttpClientTest extends TestCase
     {
         $httpClient = HttpClient::create();
 
-        $this->invoke($httpClient, function () {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEmpty($this->url);
-        });
+        $this->invoke(Closure::bind(function () {
+            Assert::assertEmpty($this->url);
+        }, $httpClient, $httpClient));
 
         $httpClient = $httpClient->setBaseUri('https://foo.bar.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals(
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals(
                 [
                     new BaseUriPlugin(
                         Psr17FactoryDiscovery::findUriFactory()->createUri('https://foo.bar.com')
@@ -55,7 +56,7 @@ final class HttpClientTest extends TestCase
                 ],
                 $this->plugins
             );
-        });
+        }, $httpClient, $httpClient));
     }
 
     public function testRequestWithBasicAuth(): void
@@ -64,15 +65,14 @@ final class HttpClientTest extends TestCase
             ->basicAuth('foo', 'bar')
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals(
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals(
                 [
                     new AuthenticationPlugin(new BasicAuth('foo', 'bar'))
                 ],
                 $this->plugins
             );
-        });
+        }, $httpClient, $httpClient));
     }
 
     public function testRequestWithBearerAuth(): void
@@ -81,15 +81,14 @@ final class HttpClientTest extends TestCase
             ->bearerToken('foobar')
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals(
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals(
                 [
                     new AuthenticationPlugin(new Bearer('foobar'))
                 ],
                 $this->plugins
             );
-        });
+        }, $httpClient, $httpClient));
     }
 
     public function testRequestWithUrl(): void
@@ -97,13 +96,12 @@ final class HttpClientTest extends TestCase
         $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com/foo/bar/baz');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals(
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals(
                 'https://example.com/foo/bar/baz',
                 $this->url
             );
-        });
+        }, $httpClient, $httpClient));
     }
 
     public function testDisableSslVerification(): void
@@ -112,11 +110,10 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->disableSslVerification();
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertFalse($this->options->verifyHost);
-            HttpClientTest::assertFalse($this->options->verifyPeer);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertFalse($this->options->verifyHost);
+            Assert::assertFalse($this->options->verifyPeer);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithJsonBody(): void
@@ -125,11 +122,10 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->json(['foo' => 'bar']);
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertSame(['Content-Type' => 'application/json', 'Accept' => 'application/json'], $this->options->headers);
-            HttpClientTest::assertSame('{"foo":"bar"}', $this->options->body);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertSame(['Content-Type' => 'application/json', 'Accept' => 'application/json'], $this->options->headers);
+            Assert::assertSame('{"foo":"bar"}', $this->options->body);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithFormDataBody(): void
@@ -138,11 +134,10 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->formData(['foo' => 'bar', 'baz' => 'foobar']);
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertSame(['Content-Type' => 'application/x-www-form-urlencoded'], $this->options->headers);
-            HttpClientTest::assertSame('foo=bar&baz=foobar', $this->options->body);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertSame(['Content-Type' => 'application/x-www-form-urlencoded'], $this->options->headers);
+            Assert::assertSame('foo=bar&baz=foobar', $this->options->body);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithQueryParameters(): void
@@ -152,15 +147,14 @@ final class HttpClientTest extends TestCase
             ->query(['foo' => 'bar', 'baz' => 'foobar']);
 
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals(
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals(
                 [
                     new QueryDefaultsPlugin(['foo' => 'bar', 'baz' => 'foobar'])
                 ],
                 $this->plugins
             );
-        });
+        }, $httpClient, $httpClient));
     }
 
     public function testWithHeaders(): void
@@ -169,31 +163,29 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->header('X-API-TOKEN', 'ABC-DEF');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals(
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals(
                 [
                     'X-API-TOKEN' => 'ABC-DEF',
                 ],
                 $this->options->headers
             );
-        });
+        }, $httpClient, $httpClient));
 
         $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com')
             ->header('X-API-TOKEN', 'ABC-DEF')
             ->header('Accept', 'application/json');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals(
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals(
                 [
                     'X-API-TOKEN' => 'ABC-DEF',
                     'Accept' => 'application/json',
                 ],
                 $this->options->headers
             );
-        });
+        }, $httpClient, $httpClient));
     }
 
     public function testWithRequestMethods(): void
@@ -202,10 +194,10 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->method('put');
 
-        $this->invoke($httpClient, function (): void {
+        $this->invoke(Closure::bind(function (): void {
             /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('PUT', $this->method);
-        });
+            Assert::assertEquals('PUT', $this->method);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithGetHelperMethods(): void
@@ -214,10 +206,9 @@ final class HttpClientTest extends TestCase
             ->get()
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('GET', $this->method);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('GET', $this->method);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithPostHelperMethods(): void
@@ -226,10 +217,9 @@ final class HttpClientTest extends TestCase
             ->post()
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('POST', $this->method);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('POST', $this->method);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithPutHelperMethods(): void
@@ -238,10 +228,9 @@ final class HttpClientTest extends TestCase
             ->put()
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('PUT', $this->method);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('PUT', $this->method);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithPatchHelperMethods(): void
@@ -250,10 +239,9 @@ final class HttpClientTest extends TestCase
             ->patch()
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('PATCH', $this->method);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('PATCH', $this->method);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithOptionsHelperMethods(): void
@@ -262,10 +250,9 @@ final class HttpClientTest extends TestCase
             ->options()
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('OPTIONS', $this->method);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('OPTIONS', $this->method);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithDeleteHelperMethods(): void
@@ -274,25 +261,23 @@ final class HttpClientTest extends TestCase
             ->delete()
             ->url('https://example.com');
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('DELETE', $this->method);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('DELETE', $this->method);
+        }, $httpClient, $httpClient));
     }
 
     public function testWithProgress(): void
     {
-        $progressFunction = static function () {};
+        $progressFunction = static function (): void {};
 
         $httpClient = HttpClient::create($this->getMockGuzzleClient(new Response()))
             ->url('https://example.com')
             ->header('Accept', 'application/json')
             ->progress($progressFunction);
 
-        $this->invoke($httpClient, function () use ($progressFunction): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertSame($progressFunction, $this->options->onProgress);
-        });
+        $this->invoke(Closure::bind(function () use ($progressFunction): void {
+            Assert::assertSame($progressFunction, $this->options->onProgress);
+        }, $httpClient, $httpClient));
     }
 
     public function testItThrowsExceptionWithAMissingUrl(): void
@@ -307,10 +292,13 @@ final class HttpClientTest extends TestCase
 
     public function testItCanStreamToAFile(): void
     {
-        try {
-            $file = tempnam(sys_get_temp_dir(), 'api');
-            assert(false !== $file);
+        $file = tempnam(sys_get_temp_dir(), 'api');
 
+        if (false === $file) {
+            self::fail('Could not create temporary file');
+        }
+
+        try {
             HttpClient::create($this->getMockGuzzleClient(new Response(200, [], 'foo bar baz')))
                 ->url('https://example.com')
                 ->saveToFile($file)
@@ -325,10 +313,15 @@ final class HttpClientTest extends TestCase
 
     public function testItCanAppendToAFile(): void
     {
+        $file = tempnam(sys_get_temp_dir(), 'api');
+
+        if (false === $file) {
+            self::fail('Could not create temporary file');
+        }
+
+        file_put_contents($file, 'a b c 1 2 3');
+
         try {
-            $file = tempnam(sys_get_temp_dir(), 'api');
-            assert(false !== $file);
-            file_put_contents($file, 'a b c 1 2 3');
 
             $httpClient = HttpClient::create($this->getMockGuzzleClient(new Response(200, [], 'foo bar baz')));
 
@@ -350,10 +343,9 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->uploadFile('field', __FILE__);
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertSame(file_get_contents(__FILE__), $this->options->files['field']->getBody());
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertStringEqualsFile(__FILE__, $this->options->files['field']->getBody());
+        }, $httpClient, $httpClient));
     }
 
     public function testHttpVersion1(): void
@@ -362,10 +354,9 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->httpVersion(HttpClient::HTTP_VERSION_1);
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('1.1', $this->options->httpVersion);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('1.1', $this->options->httpVersion);
+        }, $httpClient, $httpClient));
     }
 
     public function testHttpVersion2(): void
@@ -374,19 +365,17 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->httpVersion(HttpClient::HTTP_VERSION_2);
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('2.0', $this->options->httpVersion);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('2.0', $this->options->httpVersion);
+        }, $httpClient, $httpClient));
 
         $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com')
             ->http2();
 
-        $this->invoke($httpClient, function (): void {
-            /* @var RequestBuilder $this */
-            HttpClientTest::assertEquals('2.0', $this->options->httpVersion);
-        });
+        $this->invoke(Closure::bind(function (): void {
+            Assert::assertEquals('2.0', $this->options->httpVersion);
+        }, $httpClient, $httpClient));
     }
 
     public function testResponseInformation(): void
@@ -454,6 +443,7 @@ final class HttpClientTest extends TestCase
 
     private static function assertObjectIsNotTheSame(RequestBuilder $expected, RequestBuilder $actual): void
     {
+        /** @return mixed */
         $getOptionsProperty = static function (RequestBuilder $object) {
             $ref = new \ReflectionProperty($object, 'options');
             $ref->setAccessible(true);
@@ -465,12 +455,13 @@ final class HttpClientTest extends TestCase
         self::assertNotSame($getOptionsProperty($expected), $getOptionsProperty($actual));
     }
 
-    private function invoke(RequestBuilder $httpClient, callable $assert): void
+    /**
+     * @param Closure|false $closure
+     */
+    private function invoke($closure): void
     {
-        $closure = Closure::bind($assert, $httpClient, $httpClient);
-
         if ($closure === false) {
-            $this->fail('Closure could not be bound to RequestBuilder');
+            self::fail('Closure could not be bound to RequestBuilder');
         }
 
         $closure();
@@ -478,6 +469,7 @@ final class HttpClientTest extends TestCase
 
     private function getMockGuzzleClient(Response ...$response): Client
     {
+        /** @var array<int, mixed> $response */
         return new Client([
             'handler' => HandlerStack::create(new MockHandler($response))
         ]);
