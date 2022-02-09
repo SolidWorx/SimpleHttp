@@ -1,6 +1,26 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Function GuzzleHttp\\\\Psr7\\\\stream_for not found\\.$#"
+			count: 1
+			path: src/Factory/Guzzle7Factory.php
+
+		-
+			message: "#^Function GuzzleHttp\\\\Psr7\\\\try_fopen not found\\.$#"
+			count: 1
+			path: src/Factory/Guzzle7Factory.php
+
+		-
+			message: "#^Used function GuzzleHttp\\\\Psr7\\\\stream_for not found\\.$#"
+			count: 1
+			path: src/Factory/Guzzle7Factory.php
+
+		-
+			message: "#^Used function GuzzleHttp\\\\Psr7\\\\try_fopen not found\\.$#"
+			count: 1
+			path: src/Factory/Guzzle7Factory.php
+
+		-
 			message: "#^Parameter \\#1 \\$queue of class GuzzleHttp\\\\Handler\\\\MockHandler constructor expects array\\<int, mixed\\>\\|null, array\\<int\\|string, GuzzleHttp\\\\Psr7\\\\Response\\> given\\.$#"
 			count: 1
 			path: tests/HttpClientTest.php

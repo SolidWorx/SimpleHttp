@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.19.0@a2ad69ae4f5ab1f7d225a8dc4e2ec2d9415ed599">
+<files psalm-version="4.20.0@f82a70e7edfc6cf2705e9374c8a0b6a974a779ed">
   <file src="src/Discovery/HttpAsyncClientDiscovery.php">
     <MixedInferredReturnType occurrences="1">
       <code>HttpAsyncClient</code>
@@ -18,6 +18,18 @@
     <MixedArgument occurrences="1">
       <code>$client-&gt;getConfig()</code>
     </MixedArgument>
+    <MixedInferredReturnType occurrences="2">
+      <code>StreamInterface</code>
+      <code>resource</code>
+    </MixedInferredReturnType>
+    <MixedReturnStatement occurrences="2">
+      <code>stream_for($stream)</code>
+      <code>try_fopen($resource, $mode)</code>
+    </MixedReturnStatement>
+    <UndefinedFunction occurrences="2">
+      <code>stream_for($stream)</code>
+      <code>try_fopen($resource, $mode)</code>
+    </UndefinedFunction>
   </file>
   <file src="src/RequestBuilder.php">
     <MixedArgumentTypeCoercion occurrences="1">
