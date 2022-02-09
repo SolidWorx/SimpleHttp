@@ -1,15 +1,25 @@
 <?php
+
 declare(strict_types=1);
+
+/*
+ * This file is part of SolidWorx/SimpleHttp project.
+ *
+ * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
 
 namespace SolidWorx\SimpleHttp\Http\Plugin;
 
 use Http\Client\Common\Plugin;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Promise\Promise;
+use function is_resource;
 use League\Flysystem\FilesystemWriter;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use function is_resource;
 
 final class FlysystemWritePlugin implements Plugin
 {

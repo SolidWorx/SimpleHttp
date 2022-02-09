@@ -14,10 +14,6 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Traits;
 
 use Closure;
-use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FilesystemWriter;
-use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
-use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use function fopen;
 use Http\Client\Common\Plugin;
 use Http\Client\Common\Plugin\BaseUriPlugin;
@@ -25,12 +21,16 @@ use Http\Client\Common\Plugin\QueryDefaultsPlugin;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FilesystemWriter;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
+use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\Progress;
+use function sprintf;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
-use function sprintf;
 
 trait HttpOptionsTrait
 {
@@ -145,7 +145,7 @@ trait HttpOptionsTrait
     }
 
     /**
-     * @param string|resource $filePath
+     * @param string|resource                      $filePath
      * @param FilesystemWriter|FilesystemInterface $writer
      *
      * @return $this
@@ -154,17 +154,14 @@ trait HttpOptionsTrait
     {
         $httpClient = clone $this;
 
-        if ($writer === null) {
+        if (null === $writer) {
             $httpClient->options = $httpClient->options->buffer($filePath);
 
             return $httpClient;
         }
 
         if (!$writer instanceof FilesystemWriter && !$writer instanceof FilesystemInterface) {
-            throw new InvalidArgumentTypeException(
-                sprintf('%s or %s', FilesystemWriter::class, FilesystemInterface::class),
-                $writer
-            );
+            throw new InvalidArgumentTypeException(sprintf('%s or %s', FilesystemWriter::class, FilesystemInterface::class), $writer);
         }
 
         $httpClient->plugins[] = new FlysystemWritePlugin($writer, $filePath);
