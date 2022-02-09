@@ -16,12 +16,12 @@ namespace SolidWorx\SimpleHttp\Discovery;
 use function array_unique;
 use function array_unshift;
 use function assert;
+use function is_a;
 use Http\Client\Common\EmulatedHttpAsyncClient;
 use Http\Client\HttpAsyncClient;
 use Http\Discovery\ClassDiscovery;
 use Http\Discovery\Exception\DiscoveryFailedException;
 use Http\Discovery\Exception\NotFoundException;
-use function is_a;
 use Psr\Http\Client\ClientInterface;
 use SolidWorx\SimpleHttp\Discovery\Strategy\HttpAsyncClientStrategy;
 use SolidWorx\SimpleHttp\Factory\HttpAsyncClientFactory;
@@ -43,6 +43,7 @@ final class HttpAsyncClientDiscovery extends ClassDiscovery
         }
 
         if (is_a($clientFactory, HttpAsyncClientFactory::class, true)) {
+            /** @var HttpAsyncClientFactory $clientFactory */
             return $clientFactory::createInstance($requestOptions, $client);
         }
 
