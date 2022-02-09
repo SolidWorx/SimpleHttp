@@ -14,6 +14,10 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Traits;
 
 use Closure;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FilesystemWriter;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
+use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use function fopen;
 use Http\Client\Common\Plugin;
 use Http\Client\Common\Plugin\BaseUriPlugin;
@@ -26,6 +30,7 @@ use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\Progress;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
+use function sprintf;
 
 trait HttpOptionsTrait
 {
@@ -141,14 +146,31 @@ trait HttpOptionsTrait
 
     /**
      * @param string|resource $filePath
+     * @param FilesystemWriter|FilesystemInterface $writer
      *
      * @return $this
      */
-    public function saveToFile($filePath): self
+    public function saveToFile($filePath, $writer = null): self
     {
         $httpClient = clone $this;
 
-        $httpClient->options = $httpClient->options->buffer($filePath);
+        if ($writer === null) {
+            $httpClient->options = $httpClient->options->buffer($filePath);
+
+            return $httpClient;
+        }
+
+        if (!$writer instanceof FilesystemWriter && !$writer instanceof FilesystemInterface) {
+            throw new InvalidArgumentTypeException(
+                sprintf('%s or %s', FilesystemWriter::class, FilesystemInterface::class),
+                $writer
+            );
+        }
+
+        $httpClient->plugins[] = new FlysystemWritePlugin($writer, $filePath);
+        $httpClient->options = $httpClient->options->buffer(static function ($stream) use ($writer, $filePath) {
+            $writer->writeStream($filePath, $stream);
+        });
 
         return $httpClient;
     }
