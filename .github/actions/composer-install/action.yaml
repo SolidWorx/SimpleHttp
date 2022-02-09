@@ -1,0 +1,36 @@
+name: Install PHP Dependencies with Composer
+description: Installs and caches PHP dependencies with Composer
+
+inputs:
+    dependency-versions:
+        description: The version of dependencies to prefer (`lowest`, `highest`).
+        required: true
+        default: highest
+    composer-options:
+        description: Additional options to pass to Composer (e.g. `--ignore-platform-reqs`).
+        required: false
+
+runs:
+    using: composite
+    steps:
+    -   name: Get Composer Cache Directory
+        id: composer-cache
+        shell: bash
+        run: |
+            echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+    -   uses: actions/cache@v2
+        with:
+            path: ${{ steps.composer-cache.outputs.dir }}
+            key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+            restore-keys: |
+                ${{ runner.os }}-composer-
+
+    -   name: Install dependencies
+        shell: bash
+        run: |
+            if [[ "${{ inputs.dependency-versions }}" == "lowest" ]]; then
+                composer install --prefer-dist --no-interaction --prefer-lowest --ansi ${{ inputs.composer-options }}
+            elif [[ "${{ inputs.dependency-versions }}" == "highest" ]]; then
+                composer install --prefer-dist --no-interaction --ansi ${{ inputs.composer-options }}
+            fi

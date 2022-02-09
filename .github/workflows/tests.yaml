@@ -23,14 +23,12 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php }}
+                  tools: composer:2
                   coverage: none
 
             - uses: actions/checkout@v2
 
-            - uses: ramsey/composer-install@v2
-              with:
-                dependency-versions: ${{ matrix.dependencies }}
-                composer-options: ${{ matrix.composer-options }}
+            - uses: ./.github/actions/composer-install
 
             - run: ./vendor/bin/phpunit
 
@@ -46,6 +44,6 @@ jobs:
 
             - uses: actions/checkout@v2
 
-            - uses: ramsey/composer-install@v2
+            - uses: ./.github/actions/composer-install
 
-            - run: ./vendor/bin/infection --min-msi=57 --min-covered-msi=85 --threads=4 --logger-github
+            - run: ./vendor/bin/infection --min-msi=56 --min-covered-msi=85 --threads=4 --logger-github
