@@ -14,6 +14,12 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Tests;
 
 use Closure;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FilesystemWriter;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
+use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
+use stdClass;
 use function file_get_contents;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -32,6 +38,7 @@ use PHPUnit\Framework\TestCase;
 use SolidWorx\SimpleHttp\Exception\MissingUrlException;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\RequestBuilder;
+use function interface_exists;
 
 final class HttpClientTest extends TestCase
 {
@@ -435,6 +442,88 @@ final class HttpClientTest extends TestCase
         self::assertObjectIsNotTheSame($httpClient, $httpClient->appendToFile(__FILE__));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->uploadFile('', __FILE__));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->httpVersion(''));
+    }
+
+    public function testSaveToFileWithFlysystemV1(): void
+    {
+        if (!interface_exists(FilesystemInterface::class)) {
+            self::markTestSkipped('Flysystem V1 is not available');
+        }
+
+        $writer = $this->createMock(FilesystemInterface::class);
+        $httpClient = HttpClient::create()
+            ->saveToFile(__FILE__, $writer);
+
+        $this->invoke(Closure::bind(function () use ($writer): void {
+            Assert::assertEquals(
+                [
+                    new FlysystemWritePlugin(
+                        $writer,
+                        __FILE__
+                    ),
+                ],
+                $this->plugins
+            );
+        }, $httpClient, $httpClient));
+    }
+
+    public function testSaveToFileWithFlysystemV2(): void
+    {
+        if (!interface_exists(FilesystemWriter::class)) {
+            self::markTestSkipped('Flysystem V2 is not available');
+        }
+
+        $writer = $this->createMock(FilesystemWriter::class);
+        $httpClient = HttpClient::create()
+            ->saveToFile(__FILE__, $writer);
+
+        $this->invoke(Closure::bind(function () use ($writer): void {
+            Assert::assertEquals(
+                [
+                    new FlysystemWritePlugin(
+                        $writer,
+                        __FILE__
+                    ),
+                ],
+                $this->plugins
+            );
+        }, $httpClient, $httpClient));
+    }
+
+    public function testSaveToFileWithInvalidWriter(): void
+    {
+        $this->expectException(InvalidArgumentTypeException::class);
+        $this->expectExceptionMessage('Expected argument of type "League\Flysystem\FilesystemWriter or League\Flysystem\FilesystemInterface", "stdClass" given');
+
+        HttpClient::create()
+            ->saveToFile(__FILE__, new stdClass());
+    }
+
+    public function testSaveToFileWithInvalidPath(): void
+    {
+        if (!interface_exists(FilesystemWriter::class) && !interface_exists(FilesystemInterface::class)) {
+            self::markTestSkipped('Flysystem is not available');
+        }
+
+        $flysystem = interface_exists(FilesystemWriter::class) ?
+            $this->createMock(FilesystemWriter::class) :
+            $this->createMock(FilesystemInterface::class);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('When saving files using Flysystem, the file path must be a string');
+
+        $resource = fopen(__FILE__, 'rb');
+
+        if (!is_resource($resource)) {
+            self::fail('Could not open file');
+        }
+
+        try {
+            HttpClient::create()
+                ->saveToFile($resource, $flysystem);
+        } finally {
+            fclose($resource);
+        }
     }
 
     private static function assertObjectIsNotTheSame(RequestBuilder $expected, RequestBuilder $actual): void
