@@ -17,28 +17,36 @@ use Http\Client\Common\Plugin;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Promise\Promise;
 use function is_resource;
+use League\Flysystem\FileExistsException;
+use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FilesystemWriter;
+use League\Flysystem\FilesystemOperator;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 final class FlysystemWritePlugin implements Plugin
 {
     /**
-     * @var FilesystemInterface|FilesystemWriter
+     * @var FilesystemInterface|FilesystemOperator
      */
-    private $writer;
+    private $filesystem;
     private string $path;
 
     /**
-     * @param FilesystemInterface|FilesystemWriter $writer
+     * @param FilesystemInterface|FilesystemOperator $filesystem
      */
-    public function __construct($writer, string $path)
+    public function __construct($filesystem, string $path)
     {
-        $this->writer = $writer;
+        $this->filesystem = $filesystem;
         $this->path = $path;
     }
 
+    /**
+     * @throws FileNotFoundException
+     * @throws Throwable
+     * @throws FileExistsException
+     */
     public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
     {
         $responseFactory = Psr17FactoryDiscovery::findResponseFactory();
@@ -46,19 +54,13 @@ final class FlysystemWritePlugin implements Plugin
 
         return $next($request)->then(function (ResponseInterface $response) use ($responseFactory, $streamFactory) {
             $body = $response->getBody();
-            $isSeekable = $body->isSeekable();
-
             $stream = $body->detach();
 
             if (!is_resource($stream)) {
                 return $response;
             }
 
-            $this->writer->writeStream($this->path, $stream);
-
-            if ($isSeekable) {
-                rewind($stream);
-            }
+            $this->filesystem->writeStream($this->path, $stream);
 
             $nextResponse = $responseFactory->createResponse(
                 $response->getStatusCode(),
@@ -69,8 +71,14 @@ final class FlysystemWritePlugin implements Plugin
                 $nextResponse = $nextResponse->withHeader($name, $value);
             }
 
+            $resource = $this->filesystem->readStream($this->path);
+
+            if (is_resource($resource)) {
+                $body = $streamFactory->createStreamFromResource($resource);
+            }
+
             return $nextResponse
-                ->withBody($streamFactory->createStreamFromResource($stream))
+                ->withBody($body)
                 ->withProtocolVersion($response->getProtocolVersion());
         });
     }
