@@ -19,5 +19,4 @@ parameters:
 	checkMissingIterableValueType: false
 
 	bootstrapFiles:
-		- tests/tools/flysystemv1/vendor/autoload.php
-		- tests/tools/flysystemv2/vendor/autoload.php
+		- tests/autoloader.php
