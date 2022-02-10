@@ -47,3 +47,26 @@ jobs:
             - uses: ./.github/actions/composer-install
 
             - run: ./vendor/bin/infection --min-msi=56 --min-covered-msi=85 --threads=4 --logger-github
+
+    coverage:
+        name: Code Coverage
+        runs-on: ubuntu-latest
+        steps:
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                php-version: latest
+                coverage: pcov
+
+            - uses: actions/checkout@v1
+
+            - uses: ./.github/actions/composer-install
+
+            - run: ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
+
+            - name: Coveralls
+              env:
+                  COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                composer global require php-coveralls/php-coveralls
+                php-coveralls --coverage_clover=build/logs/clover.xml -v
