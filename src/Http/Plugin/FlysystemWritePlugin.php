@@ -17,16 +17,23 @@ use Http\Client\Common\Plugin;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Promise\Promise;
 use function is_resource;
+use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemWriter;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 final class FlysystemWritePlugin implements Plugin
 {
-    private FilesystemWriter $writer;
+    /**
+     * @var FilesystemInterface|FilesystemWriter
+     */
+    private $writer;
     private string $path;
 
-    public function __construct(FilesystemWriter $writer, string $path)
+    /**
+     * @param FilesystemInterface|FilesystemWriter $writer
+     */
+    public function __construct($writer, string $path)
     {
         $this->writer = $writer;
         $this->path = $path;
@@ -58,8 +65,8 @@ final class FlysystemWritePlugin implements Plugin
                 $response->getReasonPhrase(),
             );
 
-            foreach ($response->getHeaders() as $name => $values) {
-                $nextResponse = $nextResponse->withHeader($name, $values);
+            foreach ($response->getHeaders() as $name => $value) {
+                $nextResponse = $nextResponse->withHeader($name, $value);
             }
 
             return $nextResponse

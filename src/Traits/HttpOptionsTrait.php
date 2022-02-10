@@ -28,6 +28,7 @@ use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
 use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\Progress;
+use function is_string;
 use function sprintf;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
@@ -145,8 +146,8 @@ trait HttpOptionsTrait
     }
 
     /**
-     * @param string|resource                      $filePath
-     * @param FilesystemWriter|FilesystemInterface $writer
+     * @param string|resource $filePath
+     * @param mixed           $writer
      *
      * @return $this
      */
@@ -164,10 +165,11 @@ trait HttpOptionsTrait
             throw new InvalidArgumentTypeException(sprintf('%s or %s', FilesystemWriter::class, FilesystemInterface::class), $writer);
         }
 
+        if (!is_string($filePath)) {
+            throw new InvalidArgumentException('When saving files using Flysystem, the file path must be a string');
+        }
+
         $httpClient->plugins[] = new FlysystemWritePlugin($writer, $filePath);
-        $httpClient->options = $httpClient->options->buffer(static function ($stream) use ($writer, $filePath) {
-            $writer->writeStream($filePath, $stream);
-        });
 
         return $httpClient;
     }
