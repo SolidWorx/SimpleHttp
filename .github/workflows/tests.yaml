@@ -46,7 +46,15 @@ jobs:
 
             - uses: ./.github/actions/composer-install
 
-            - run: ./vendor/bin/infection --min-msi=56 --min-covered-msi=85 --threads=4 --logger-github
+            - uses: ramsey/composer-install@v2
+              with:
+                  working-directory: tests/tools/flysystemv1
+
+            - uses: ramsey/composer-install@v2
+              with:
+                  working-directory: tests/tools/flysystemv2
+
+            - run: ./vendor/bin/infection --min-msi=56 --min-covered-msi=83 --threads=4 --logger-github
 
     coverage:
         name: Code Coverage
@@ -60,7 +68,15 @@ jobs:
 
             - uses: actions/checkout@v1
 
-            - uses: ./.github/actions/composer-install
+            -   uses: ./.github/actions/composer-install
+
+            -   uses: ramsey/composer-install@v2
+                with:
+                    working-directory: tests/tools/flysystemv1
+
+            -   uses: ramsey/composer-install@v2
+                with:
+                    working-directory: tests/tools/flysystemv2
 
             - run: ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
 
