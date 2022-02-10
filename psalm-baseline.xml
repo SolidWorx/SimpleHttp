@@ -31,6 +31,11 @@
       <code>try_fopen($resource, $mode)</code>
     </UndefinedFunction>
   </file>
+  <file src="src/Http/Plugin/FlysystemWritePlugin.php">
+    <MixedArgumentTypeCoercion occurrences="1">
+      <code>$name</code>
+    </MixedArgumentTypeCoercion>
+  </file>
   <file src="src/RequestBuilder.php">
     <MixedArgumentTypeCoercion occurrences="1">
       <code>$name</code>
@@ -40,6 +45,36 @@
     <MixedArgumentTypeCoercion occurrences="1">
       <code>array_merge((array) $body, $this-&gt;files)</code>
     </MixedArgumentTypeCoercion>
+  </file>
+  <file src="tests/Http/Plugin/FlysystemWritePluginTest.php">
+    <InvalidDocblock occurrences="3">
+      <code>(FilesystemInterface|FilesystemWriter)&amp;MockObject</code>
+      <code>(FilesystemInterface|FilesystemWriter)&amp;MockObject</code>
+      <code>(FilesystemInterface|FilesystemWriter)&amp;MockObject</code>
+    </InvalidDocblock>
+    <MissingParamType occurrences="3">
+      <code>$filesystem</code>
+      <code>$filesystem</code>
+      <code>$filesystem</code>
+    </MissingParamType>
+    <MixedArgument occurrences="3">
+      <code>$filesystem</code>
+      <code>$filesystem</code>
+      <code>$filesystem</code>
+    </MixedArgument>
+    <MixedInferredReturnType occurrences="1">
+      <code>Generator</code>
+    </MixedInferredReturnType>
+    <MixedMethodCall occurrences="8">
+      <code>expects</code>
+      <code>expects</code>
+      <code>expects</code>
+      <code>method</code>
+      <code>method</code>
+      <code>method</code>
+      <code>with</code>
+      <code>with</code>
+    </MixedMethodCall>
   </file>
   <file src="tests/HttpClientTest.php">
     <MissingClosureReturnType occurrences="1">
@@ -72,7 +107,7 @@
       <code>$this-&gt;options-&gt;verifyHost</code>
       <code>$this-&gt;options-&gt;verifyPeer</code>
     </MixedPropertyFetch>
-    <UndefinedThisPropertyFetch occurrences="23">
+    <UndefinedThisPropertyFetch occurrences="25">
       <code>$this-&gt;method</code>
       <code>$this-&gt;method</code>
       <code>$this-&gt;method</code>
@@ -90,6 +125,8 @@
       <code>$this-&gt;options</code>
       <code>$this-&gt;options</code>
       <code>$this-&gt;options</code>
+      <code>$this-&gt;plugins</code>
+      <code>$this-&gt;plugins</code>
       <code>$this-&gt;plugins</code>
       <code>$this-&gt;plugins</code>
       <code>$this-&gt;plugins</code>

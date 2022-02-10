@@ -8,6 +8,7 @@
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     errorBaseline="psalm-baseline.xml"
+    autoloader="tests/autoloader.php"
 >
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin" />
@@ -17,6 +18,7 @@
         <directory name="tests/" />
         <ignoreFiles>
             <directory name="vendor/" />
+            <directory name="tests/tools" />
         </ignoreFiles>
     </projectFiles>
 </psalm>
