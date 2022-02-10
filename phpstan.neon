@@ -10,6 +10,10 @@ parameters:
 		- src/
 		- tests/
 
+	excludePaths:
+		analyse:
+			- tests/tools
+
 	tmpDir: build/phpstan/
 
 	checkMissingIterableValueType: false
