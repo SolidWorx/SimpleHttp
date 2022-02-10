@@ -14,12 +14,6 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Tests;
 
 use Closure;
-use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FilesystemWriter;
-use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
-use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
-use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
-use stdClass;
 use function file_get_contents;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -32,13 +26,19 @@ use Http\Client\Exception\HttpException;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
+use function interface_exists;
 use JsonException;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FilesystemWriter;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
 use SolidWorx\SimpleHttp\Exception\MissingUrlException;
+use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\RequestBuilder;
-use function interface_exists;
+use stdClass;
 
 final class HttpClientTest extends TestCase
 {

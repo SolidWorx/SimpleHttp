@@ -1,25 +1,35 @@
 <?php
+
 declare(strict_types=1);
+
+/*
+ * This file is part of SolidWorx/SimpleHttp project.
+ *
+ * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
 
 namespace SolidWorx\SimpleHttp\Tests\Http\Plugin;
 
 use Exception;
-use Generator;
-use Http\Client\Promise\HttpFulfilledPromise;
-use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FilesystemWriter;
-use Nyholm\Psr7\Request;
-use Nyholm\Psr7\Response;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\StreamInterface;
-use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 use function fopen;
 use function fseek;
 use function ftell;
 use function fwrite;
+use Generator;
+use Http\Client\Promise\HttpFulfilledPromise;
 use function interface_exists;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FilesystemWriter;
+use Nyholm\Psr7\Request;
+use Nyholm\Psr7\Response;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\StreamInterface;
+use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use function sys_get_temp_dir;
 
 /**
