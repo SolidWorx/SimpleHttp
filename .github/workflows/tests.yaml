@@ -54,7 +54,7 @@ jobs:
               with:
                   working-directory: tests/tools/flysystemv2
 
-            - run: ./vendor/bin/infection --min-msi=56 --min-covered-msi=83 --threads=4 --logger-github
+            - run: ./vendor/bin/infection --min-msi=59 --min-covered-msi=84 --threads=4 --logger-github
 
     coverage:
         name: Code Coverage
