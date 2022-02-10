@@ -25,7 +25,6 @@ use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemWriter;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -38,11 +37,11 @@ use function sys_get_temp_dir;
 final class FlysystemWritePluginTest extends TestCase
 {
     /**
-     * @param (FilesystemInterface|FilesystemWriter)&MockObject $filesystem
+     * @param class-string<FilesystemInterface>|class-string<FilesystemWriter> $class
      *
      * @dataProvider flysystemProvider
      */
-    public function testHandleRequestWithFlysytemV1($filesystem): void
+    public function testHandleRequestWithFlysytemV1(string $class): void
     {
         $path = sys_get_temp_dir();
         $body = $this->createMock(StreamInterface::class);
@@ -57,7 +56,8 @@ final class FlysystemWritePluginTest extends TestCase
             ->method('detach')
             ->willReturn($resource);
 
-        $filesystem->expects(self::once())
+        $filesystem = $this->createMock($class);
+        $filesystem->expects(self::atLeastOnce())
             ->method('writeStream')
             ->with($path, $resource);
 
@@ -89,11 +89,11 @@ final class FlysystemWritePluginTest extends TestCase
     }
 
     /**
-     * @param (FilesystemInterface|FilesystemWriter)&MockObject $filesystem
+     * @param class-string<FilesystemInterface>|class-string<FilesystemWriter> $class
      *
      * @dataProvider flysystemProvider
      */
-    public function testHandleRequestWithFlysytemV1AndSeekableStream($filesystem): void
+    public function testHandleRequestWithFlysytemV1AndSeekableStream(string $class): void
     {
         $path = sys_get_temp_dir();
         $body = $this->createMock(StreamInterface::class);
@@ -115,6 +115,7 @@ final class FlysystemWritePluginTest extends TestCase
             ->method('isSeekable')
             ->willReturn(true);
 
+        $filesystem = $this->createMock($class);
         $filesystem->expects(self::once())
             ->method('writeStream')
             ->with($path, $resource);
@@ -149,11 +150,11 @@ final class FlysystemWritePluginTest extends TestCase
     }
 
     /**
-     * @param (FilesystemInterface|FilesystemWriter)&MockObject $filesystem
+     * @param class-string<FilesystemInterface>|class-string<FilesystemWriter> $class
      *
      * @dataProvider flysystemProvider
      */
-    public function testHandleRequestWithFlysytemV1AndInvalidResource($filesystem): void
+    public function testHandleRequestWithFlysytemV1AndInvalidResource(string $class): void
     {
         $path = sys_get_temp_dir();
         $body = $this->createMock(StreamInterface::class);
@@ -162,6 +163,7 @@ final class FlysystemWritePluginTest extends TestCase
             ->method('detach')
             ->willReturn('');
 
+        $filesystem = $this->createMock($class);
         $filesystem->expects(self::never())
             ->method('writeStream');
 
@@ -190,11 +192,11 @@ final class FlysystemWritePluginTest extends TestCase
     public function flysystemProvider(): Generator
     {
         if (interface_exists(FilesystemInterface::class)) {
-            yield [$this->createMock(FilesystemInterface::class)];
+            yield [FilesystemInterface::class];
         }
 
         if (interface_exists(FilesystemWriter::class)) {
-            yield [$this->createMock(FilesystemWriter::class)];
+            yield [FilesystemWriter::class];
         }
     }
 }
