@@ -23,7 +23,7 @@ use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
 use function is_string;
 use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FilesystemWriter;
+use League\Flysystem\FilesystemOperator;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
 use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
@@ -161,8 +161,8 @@ trait HttpOptionsTrait
             return $httpClient;
         }
 
-        if (!$writer instanceof FilesystemWriter && !$writer instanceof FilesystemInterface) {
-            throw new InvalidArgumentTypeException(sprintf('%s or %s', FilesystemWriter::class, FilesystemInterface::class), $writer);
+        if (!$writer instanceof FilesystemOperator && !$writer instanceof FilesystemInterface) {
+            throw new InvalidArgumentTypeException(sprintf('%s or %s', FilesystemOperator::class, FilesystemInterface::class), $writer);
         }
 
         if (!is_string($filePath)) {

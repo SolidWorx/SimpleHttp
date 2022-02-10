@@ -22,7 +22,7 @@ use Generator;
 use Http\Client\Promise\HttpFulfilledPromise;
 use function interface_exists;
 use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FilesystemWriter;
+use League\Flysystem\FilesystemOperator;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
@@ -37,7 +37,7 @@ use function sys_get_temp_dir;
 final class FlysystemWritePluginTest extends TestCase
 {
     /**
-     * @param class-string<FilesystemInterface>|class-string<FilesystemWriter> $class
+     * @param class-string<FilesystemInterface>|class-string<FilesystemOperator> $class
      *
      * @dataProvider flysystemProvider
      */
@@ -52,7 +52,7 @@ final class FlysystemWritePluginTest extends TestCase
             self::fail('Could not open temp file');
         }
 
-        $body->expects(self::once())
+        $body->expects(self::exactly(2))
             ->method('detach')
             ->willReturn($resource);
 
@@ -89,7 +89,7 @@ final class FlysystemWritePluginTest extends TestCase
     }
 
     /**
-     * @param class-string<FilesystemInterface>|class-string<FilesystemWriter> $class
+     * @param class-string<FilesystemInterface>|class-string<FilesystemOperator> $class
      *
      * @dataProvider flysystemProvider
      */
@@ -107,18 +107,24 @@ final class FlysystemWritePluginTest extends TestCase
         fwrite($resource, 'foo');
         fseek($resource, 3);
 
-        $body->expects(self::once())
+        $body->expects(self::exactly(2))
             ->method('detach')
             ->willReturn($resource);
 
-        $body->expects(self::once())
-            ->method('isSeekable')
-            ->willReturn(true);
-
         $filesystem = $this->createMock($class);
+
         $filesystem->expects(self::once())
             ->method('writeStream')
             ->with($path, $resource);
+
+        $filesystem->expects(self::once())
+            ->method('readStream')
+            ->with($path)
+            ->willReturnCallback(static function () use ($resource) {
+                rewind($resource);
+
+                return $resource;
+            });
 
         $plugin = new FlysystemWritePlugin($filesystem, $path);
 
@@ -136,7 +142,9 @@ final class FlysystemWritePluginTest extends TestCase
             /** @var Response $response */
             $response = $promise->wait();
 
-            self::assertSame(0, ftell($resource));
+            $stream = $body->detach();
+            self::assertTrue(is_resource($stream));
+            self::assertSame(0, ftell($stream));
 
             self::assertSame(200, $response->getStatusCode());
             self::assertSame('text/html', $response->getHeaderLine('Content-Type'));
@@ -150,7 +158,7 @@ final class FlysystemWritePluginTest extends TestCase
     }
 
     /**
-     * @param class-string<FilesystemInterface>|class-string<FilesystemWriter> $class
+     * @param class-string<FilesystemInterface>|class-string<FilesystemOperator> $class
      *
      * @dataProvider flysystemProvider
      */
@@ -195,8 +203,8 @@ final class FlysystemWritePluginTest extends TestCase
             yield [FilesystemInterface::class];
         }
 
-        if (interface_exists(FilesystemWriter::class)) {
-            yield [FilesystemWriter::class];
+        if (interface_exists(FilesystemOperator::class)) {
+            yield [FilesystemOperator::class];
         }
     }
 }

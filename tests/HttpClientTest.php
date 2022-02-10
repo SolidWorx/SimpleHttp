@@ -29,7 +29,7 @@ use Http\Message\Authentication\Bearer;
 use function interface_exists;
 use JsonException;
 use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FilesystemWriter;
+use League\Flysystem\FilesystemOperator;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
@@ -469,11 +469,11 @@ final class HttpClientTest extends TestCase
 
     public function testSaveToFileWithFlysystemV2(): void
     {
-        if (!interface_exists(FilesystemWriter::class)) {
+        if (!interface_exists(FilesystemOperator::class)) {
             self::markTestSkipped('Flysystem V2 is not available');
         }
 
-        $writer = $this->createMock(FilesystemWriter::class);
+        $writer = $this->createMock(FilesystemOperator::class);
         $httpClient = HttpClient::create()
             ->saveToFile(__FILE__, $writer);
 
@@ -493,7 +493,7 @@ final class HttpClientTest extends TestCase
     public function testSaveToFileWithInvalidWriter(): void
     {
         $this->expectException(InvalidArgumentTypeException::class);
-        $this->expectExceptionMessage('Expected argument of type "League\Flysystem\FilesystemWriter or League\Flysystem\FilesystemInterface", "stdClass" given');
+        $this->expectExceptionMessage('Expected argument of type "League\Flysystem\FilesystemOperator or League\Flysystem\FilesystemInterface", "stdClass" given');
 
         HttpClient::create()
             ->saveToFile(__FILE__, new stdClass());
@@ -501,12 +501,12 @@ final class HttpClientTest extends TestCase
 
     public function testSaveToFileWithInvalidPath(): void
     {
-        if (!interface_exists(FilesystemWriter::class) && !interface_exists(FilesystemInterface::class)) {
+        if (!interface_exists(FilesystemOperator::class) && !interface_exists(FilesystemInterface::class)) {
             self::markTestSkipped('Flysystem is not available');
         }
 
-        $flysystem = interface_exists(FilesystemWriter::class) ?
-            $this->createMock(FilesystemWriter::class) :
+        $flysystem = interface_exists(FilesystemOperator::class) ?
+            $this->createMock(FilesystemOperator::class) :
             $this->createMock(FilesystemInterface::class);
 
         $this->expectException(InvalidArgumentException::class);
