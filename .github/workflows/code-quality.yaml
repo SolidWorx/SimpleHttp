@@ -42,6 +42,14 @@ jobs:
 
             - uses: ramsey/composer-install@v2
 
+            - uses: ramsey/composer-install@v2
+              with:
+                  working-directory: tests/tools/flysystemv1
+
+            - uses: ramsey/composer-install@v2
+              with:
+                  working-directory: tests/tools/flysystemv2
+
             - run: ./vendor/bin/phpstan
 
     psalm:
