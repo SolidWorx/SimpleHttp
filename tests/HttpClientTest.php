@@ -25,7 +25,6 @@ use Http\Client\Exception\HttpException;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
-use function interface_exists;
 use JsonException;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemOperator;
@@ -38,7 +37,9 @@ use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\RequestBuilder;
 use stdClass;
+
 use function file_get_contents;
+use function interface_exists;
 
 final class HttpClientTest extends TestCase
 {

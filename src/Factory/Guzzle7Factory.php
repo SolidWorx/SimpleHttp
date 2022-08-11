@@ -20,6 +20,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Progress;
 use SolidWorx\SimpleHttp\RequestOptions;
+
 use function array_merge_recursive;
 use function class_exists;
 use function GuzzleHttp\Psr7\stream_for;

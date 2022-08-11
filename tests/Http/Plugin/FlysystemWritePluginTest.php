@@ -14,13 +14,8 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Tests\Http\Plugin;
 
 use Exception;
-use function fopen;
-use function fseek;
-use function ftell;
-use function fwrite;
 use Generator;
 use Http\Client\Promise\HttpFulfilledPromise;
-use function interface_exists;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemOperator;
 use Nyholm\Psr7\Request;
@@ -29,6 +24,12 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
+
+use function fopen;
+use function fseek;
+use function ftell;
+use function fwrite;
+use function interface_exists;
 use function sys_get_temp_dir;
 
 /**

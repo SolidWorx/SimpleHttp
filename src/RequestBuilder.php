@@ -23,6 +23,7 @@ use SolidWorx\SimpleHttp\Exception\MissingUrlException;
 use SolidWorx\SimpleHttp\Traits\HttpMethodsTrait;
 use SolidWorx\SimpleHttp\Traits\HttpOptionsTrait;
 use Throwable;
+
 use function in_array;
 
 final class RequestBuilder

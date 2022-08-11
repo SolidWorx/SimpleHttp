@@ -16,7 +16,6 @@ namespace SolidWorx\SimpleHttp\Http\Plugin;
 use Http\Client\Common\Plugin;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Promise\Promise;
-use function is_resource;
 use League\Flysystem\FileExistsException;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface;
@@ -24,6 +23,8 @@ use League\Flysystem\FilesystemOperator;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+
+use function is_resource;
 
 final class FlysystemWritePlugin implements Plugin
 {

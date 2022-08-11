@@ -20,7 +20,6 @@ use Http\Client\Common\Plugin\QueryDefaultsPlugin;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
-use function is_string;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemOperator;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
@@ -28,10 +27,12 @@ use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
 use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\Progress;
-use function sprintf;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
+
 use function fopen;
+use function is_string;
+use function sprintf;
 
 trait HttpOptionsTrait
 {

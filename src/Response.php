@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp;
 
 use const JSON_THROW_ON_ERROR;
+
 use Exception;
 use Http\Promise\Promise;
 use JsonException;
@@ -21,6 +22,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use SolidWorx\SimpleHttp\Exception\NotImplementedException;
+
 use function is_array;
 use function is_string;
 use function json_decode;

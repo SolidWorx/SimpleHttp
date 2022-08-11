@@ -22,6 +22,7 @@ use Psr\Http\Client\ClientInterface;
 use SolidWorx\SimpleHttp\Discovery\Strategy\HttpAsyncClientStrategy;
 use SolidWorx\SimpleHttp\Factory\HttpAsyncClientFactory;
 use SolidWorx\SimpleHttp\RequestOptions;
+
 use function array_unique;
 use function array_unshift;
 use function assert;
