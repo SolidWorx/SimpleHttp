@@ -16,12 +16,15 @@ namespace SolidWorx\SimpleHttp;
 use Exception;
 use Http\Promise\Promise;
 use function is_array;
+use function is_string;
 use function json_decode;
 use const JSON_THROW_ON_ERROR;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use SolidWorx\SimpleHttp\Exception\NotImplementedException;
+use function stream_copy_to_stream;
 
 final class Response implements ResponseInterface
 {
@@ -174,6 +177,30 @@ final class Response implements ResponseInterface
         $response = $this->response->wait();
 
         return $response->getReasonPhrase();
+    }
+
+    /**
+     * @param string|resource $path
+     *
+     * @throws Exception
+     */
+    public function saveToFile($path): void
+    {
+        $resource = $path;
+
+        if (is_string($path)) {
+            $resource = fopen($path, 'wb');
+        }
+
+        if (!is_resource($resource)) {
+            throw new InvalidArgumentException('Invalid path, must be string or resource');
+        }
+
+        $body = $this->getBody()->detach();
+
+        if (is_resource($body)) {
+            stream_copy_to_stream($body, $resource);
+        }
     }
 
     /**
