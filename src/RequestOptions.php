@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp;
 
-use function array_merge;
-use function http_build_query;
-use function is_array;
-use function is_string;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use Symfony\Component\Mime\Header\HeaderInterface;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
+use function array_merge;
+use function http_build_query;
+use function is_array;
+use function is_string;
 
 final class RequestOptions
 {

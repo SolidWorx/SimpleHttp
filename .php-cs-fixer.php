@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 /*
  * This file is part of SolidWorx/SimpleHttp project.
+ *
  * Copyright (c) Pierre du Plessis <open-source@solidworx.co>
  *
- * For the full copyright and license information, please view
- * the LICENSE.md file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
 $header = <<<'EOF'
@@ -28,7 +29,7 @@ return (new PhpCsFixer\Config())
             '@PSR1' => true,
             '@PSR2' => true,
             '@Symfony' => true,
-            'array_syntax' => array('syntax' => 'short'),
+            'array_syntax' => ['syntax' => 'short'],
             'phpdoc_no_package' => true,
             'phpdoc_summary' => false,
             'declare_strict_types' => true,
@@ -38,6 +39,9 @@ return (new PhpCsFixer\Config())
                 'header' => \trim($header),
                 'location' => 'after_declare_strict',
                 'separate' => 'both',
+            ],
+            'ordered_imports' => [
+                'imports_order' => ['const', 'class', 'function'],
             ],
         ]
     )

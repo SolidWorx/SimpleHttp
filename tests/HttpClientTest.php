@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Tests;
 
 use Closure;
-use function file_get_contents;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -39,6 +38,7 @@ use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\RequestBuilder;
 use stdClass;
+use function file_get_contents;
 
 final class HttpClientTest extends TestCase
 {

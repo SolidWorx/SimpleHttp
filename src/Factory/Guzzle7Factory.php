@@ -13,18 +13,18 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Factory;
 
-use function array_merge_recursive;
-use function class_exists;
 use GuzzleHttp\Client;
-use function GuzzleHttp\Psr7\stream_for;
-use function GuzzleHttp\Psr7\try_fopen;
 use GuzzleHttp\Psr7\Utils;
 use Http\Adapter\Guzzle7\Client as Guzzle7Client;
-use function is_string;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Progress;
 use SolidWorx\SimpleHttp\RequestOptions;
+use function array_merge_recursive;
+use function class_exists;
+use function GuzzleHttp\Psr7\stream_for;
+use function GuzzleHttp\Psr7\try_fopen;
+use function is_string;
 
 final class Guzzle7Factory implements HttpAsyncClientFactory
 {

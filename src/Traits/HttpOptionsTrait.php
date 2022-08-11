@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp\Traits;
 
 use Closure;
-use function fopen;
 use Http\Client\Common\Plugin;
 use Http\Client\Common\Plugin\BaseUriPlugin;
 use Http\Client\Common\Plugin\QueryDefaultsPlugin;
@@ -32,6 +31,7 @@ use SolidWorx\SimpleHttp\Progress;
 use function sprintf;
 use Symfony\Component\Mime\Part\DataPart;
 use Traversable;
+use function fopen;
 
 trait HttpOptionsTrait
 {
