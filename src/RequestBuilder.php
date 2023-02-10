@@ -54,6 +54,19 @@ final class RequestBuilder
         return $request;
     }
 
+    public function path(string $path): self
+    {
+        $request = clone $this;
+
+            if (!$request->url  instanceof UriInterface) {
+                throw new MissingUrlException();
+            }
+
+        $request->url = $request->url->withPath($path);
+
+        return $request;
+    }
+
     /**
      * @throws Throwable
      */
