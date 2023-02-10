@@ -43,6 +43,9 @@
         "psalm/plugin-phpunit": "^0.17",
         "vimeo/psalm": "^4.17"
     },
+    "conflict": {
+        "php-http/discovery": "1.15.0"
+    },
     "config": {
         "preferred-install": "dist",
         "sort-packages": true,
