@@ -15,11 +15,13 @@ namespace SolidWorx\SimpleHttp;
 
 use Http\Client\Common\PluginClient;
 use Http\Discovery\Psr17FactoryDiscovery;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
 use SolidWorx\SimpleHttp\Discovery\HttpAsyncClientDiscovery;
 use SolidWorx\SimpleHttp\Exception\MissingUrlException;
+use SolidWorx\SimpleHttp\Http\Plugin\CachePlugin;
 use SolidWorx\SimpleHttp\Traits\HttpMethodsTrait;
 use SolidWorx\SimpleHttp\Traits\HttpOptionsTrait;
 use Throwable;
@@ -58,9 +60,9 @@ final class RequestBuilder
     {
         $request = clone $this;
 
-            if (!$request->url  instanceof UriInterface) {
-                throw new MissingUrlException();
-            }
+        if (!$request->url  instanceof UriInterface) {
+            throw new MissingUrlException();
+        }
 
         $request->url = $request->url->withPath($path);
 
@@ -77,6 +79,14 @@ final class RequestBuilder
         $pluginClient = new PluginClient($client, $this->plugins);
 
         return new Response($pluginClient->sendAsyncRequest($this->build()));
+    }
+
+    public function cacheResponse(CacheItemPoolInterface $cachePool, int $ttl = 0): self
+    {
+        $request = clone $this;
+        $request->plugins[] = new CachePlugin($cachePool, $ttl);
+
+        return $request;
     }
 
     private function build(): RequestInterface
