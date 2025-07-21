@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Tests;
 
-use Closure;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -25,21 +24,17 @@ use Http\Client\Exception\HttpException;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
-use JsonException;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemOperator;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
+use SolidWorx\SimpleHttp\Enum\HttpVersion;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
 use SolidWorx\SimpleHttp\Exception\MissingUrlException;
 use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\RequestBuilder;
-use stdClass;
-
-use function file_get_contents;
-use function interface_exists;
 
 final class HttpClientTest extends TestCase
 {
@@ -47,13 +42,13 @@ final class HttpClientTest extends TestCase
     {
         $httpClient = HttpClient::create();
 
-        $this->invoke(Closure::bind(function () {
+        $this->invoke(\Closure::bind(function () {
             Assert::assertEmpty($this->url);
         }, $httpClient, $httpClient));
 
         $httpClient = $httpClient->setBaseUri('https://foo.bar.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals(
                 [
                     new BaseUriPlugin(
@@ -71,7 +66,7 @@ final class HttpClientTest extends TestCase
             ->basicAuth('foo', 'bar')
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals(
                 [
                     new AuthenticationPlugin(new BasicAuth('foo', 'bar')),
@@ -87,7 +82,7 @@ final class HttpClientTest extends TestCase
             ->bearerToken('foobar')
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals(
                 [
                     new AuthenticationPlugin(new Bearer('foobar')),
@@ -102,7 +97,7 @@ final class HttpClientTest extends TestCase
         $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com/foo/bar/baz');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals(
                 'https://example.com/foo/bar/baz',
                 $this->url
@@ -116,7 +111,7 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->disableSslVerification();
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertFalse($this->options->verifyHost);
             Assert::assertFalse($this->options->verifyPeer);
         }, $httpClient, $httpClient));
@@ -128,7 +123,7 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->json(['foo' => 'bar']);
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertSame(['Content-Type' => 'application/json', 'Accept' => 'application/json'], $this->options->headers);
             Assert::assertSame('{"foo":"bar"}', $this->options->body);
         }, $httpClient, $httpClient));
@@ -140,7 +135,7 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->formData(['foo' => 'bar', 'baz' => 'foobar']);
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertSame(['Content-Type' => 'application/x-www-form-urlencoded'], $this->options->headers);
             Assert::assertSame('foo=bar&baz=foobar', $this->options->body);
         }, $httpClient, $httpClient));
@@ -152,7 +147,7 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->query(['foo' => 'bar', 'baz' => 'foobar']);
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals(
                 [
                     new QueryDefaultsPlugin(['foo' => 'bar', 'baz' => 'foobar']),
@@ -168,7 +163,7 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->header('X-API-TOKEN', 'ABC-DEF');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals(
                 [
                     'X-API-TOKEN' => 'ABC-DEF',
@@ -182,7 +177,7 @@ final class HttpClientTest extends TestCase
             ->header('X-API-TOKEN', 'ABC-DEF')
             ->header('Accept', 'application/json');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals(
                 [
                     'X-API-TOKEN' => 'ABC-DEF',
@@ -199,7 +194,7 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->method('put');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             /* @var RequestBuilder $this */
             Assert::assertEquals('PUT', $this->method);
         }, $httpClient, $httpClient));
@@ -211,7 +206,7 @@ final class HttpClientTest extends TestCase
             ->get()
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals('GET', $this->method);
         }, $httpClient, $httpClient));
     }
@@ -222,7 +217,7 @@ final class HttpClientTest extends TestCase
             ->post()
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals('POST', $this->method);
         }, $httpClient, $httpClient));
     }
@@ -233,7 +228,7 @@ final class HttpClientTest extends TestCase
             ->put()
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals('PUT', $this->method);
         }, $httpClient, $httpClient));
     }
@@ -244,7 +239,7 @@ final class HttpClientTest extends TestCase
             ->patch()
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals('PATCH', $this->method);
         }, $httpClient, $httpClient));
     }
@@ -255,7 +250,7 @@ final class HttpClientTest extends TestCase
             ->options()
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals('OPTIONS', $this->method);
         }, $httpClient, $httpClient));
     }
@@ -266,7 +261,7 @@ final class HttpClientTest extends TestCase
             ->delete()
             ->url('https://example.com');
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertEquals('DELETE', $this->method);
         }, $httpClient, $httpClient));
     }
@@ -280,7 +275,7 @@ final class HttpClientTest extends TestCase
             ->header('Accept', 'application/json')
             ->progress($progressFunction);
 
-        $this->invoke(Closure::bind(function () use ($progressFunction): void {
+        $this->invoke(\Closure::bind(function () use ($progressFunction): void {
             Assert::assertSame($progressFunction, $this->options->onProgress);
         }, $httpClient, $httpClient));
     }
@@ -310,7 +305,7 @@ final class HttpClientTest extends TestCase
                 ->request();
 
             self::assertFileExists($file);
-            self::assertSame('foo bar baz', file_get_contents($file));
+            self::assertSame('foo bar baz', \file_get_contents($file));
         } finally {
             unlink($file);
         }
@@ -335,7 +330,7 @@ final class HttpClientTest extends TestCase
                 ->getContent();
 
             self::assertFileExists($file);
-            self::assertSame('a b c 1 2 3foo bar baz', file_get_contents($file));
+            self::assertSame('a b c 1 2 3foo bar baz', \file_get_contents($file));
         } finally {
             unlink($file);
         }
@@ -347,7 +342,7 @@ final class HttpClientTest extends TestCase
             ->url('https://example.com')
             ->uploadFile('field', __FILE__);
 
-        $this->invoke(Closure::bind(function (): void {
+        $this->invoke(\Closure::bind(function (): void {
             Assert::assertStringEqualsFile(__FILE__, $this->options->files['field']->getBody());
         }, $httpClient, $httpClient));
     }
@@ -356,10 +351,10 @@ final class HttpClientTest extends TestCase
     {
         $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com')
-            ->httpVersion(HttpClient::HTTP_VERSION_1);
+            ->httpVersion(HttpVersion::HTTP_1_1);
 
-        $this->invoke(Closure::bind(function (): void {
-            Assert::assertEquals('1.1', $this->options->httpVersion);
+        $this->invoke(\Closure::bind(function (): void {
+            Assert::assertEquals(HttpVersion::HTTP_1_1, $this->options->httpVersion);
         }, $httpClient, $httpClient));
     }
 
@@ -367,18 +362,18 @@ final class HttpClientTest extends TestCase
     {
         $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com')
-            ->httpVersion(HttpClient::HTTP_VERSION_2);
+            ->httpVersion(HttpVersion::HTTP_2_0);
 
-        $this->invoke(Closure::bind(function (): void {
-            Assert::assertEquals('2.0', $this->options->httpVersion);
+        $this->invoke(\Closure::bind(function (): void {
+            Assert::assertEquals(HttpVersion::HTTP_2_0, $this->options->httpVersion);
         }, $httpClient, $httpClient));
 
         $httpClient = HttpClient::create($this->getMockGuzzleClient())
             ->url('https://example.com')
             ->http2();
 
-        $this->invoke(Closure::bind(function (): void {
-            Assert::assertEquals('2.0', $this->options->httpVersion);
+        $this->invoke(\Closure::bind(function (): void {
+            Assert::assertEquals(HttpVersion::HTTP_2_0, $this->options->httpVersion);
         }, $httpClient, $httpClient));
     }
 
@@ -398,7 +393,7 @@ final class HttpClientTest extends TestCase
         try {
             $response->toArray();
             self::fail('JsonException was not thrown');
-        } catch (JsonException $e) {
+        } catch (\JsonException $e) {
             self::assertSame('Syntax error', $e->getMessage());
         }
     }
@@ -442,12 +437,12 @@ final class HttpClientTest extends TestCase
         self::assertObjectIsNotTheSame($httpClient, $httpClient->saveToFile(__FILE__));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->appendToFile(__FILE__));
         self::assertObjectIsNotTheSame($httpClient, $httpClient->uploadFile('', __FILE__));
-        self::assertObjectIsNotTheSame($httpClient, $httpClient->httpVersion(''));
+        self::assertObjectIsNotTheSame($httpClient, $httpClient->httpVersion(HttpVersion::HTTP_2_0));
     }
 
     public function testSaveToFileWithFlysystemV1(): void
     {
-        if (!interface_exists(FilesystemInterface::class)) {
+        if (!\interface_exists(FilesystemInterface::class)) {
             self::markTestSkipped('Flysystem V1 is not available');
         }
 
@@ -455,7 +450,7 @@ final class HttpClientTest extends TestCase
         $httpClient = HttpClient::create()
             ->saveToFile(__FILE__, $writer);
 
-        $this->invoke(Closure::bind(function () use ($writer): void {
+        $this->invoke(\Closure::bind(function () use ($writer): void {
             Assert::assertEquals(
                 [
                     new FlysystemWritePlugin(
@@ -470,7 +465,7 @@ final class HttpClientTest extends TestCase
 
     public function testSaveToFileWithFlysystemV2(): void
     {
-        if (!interface_exists(FilesystemOperator::class)) {
+        if (!\interface_exists(FilesystemOperator::class)) {
             self::markTestSkipped('Flysystem V2 is not available');
         }
 
@@ -478,7 +473,7 @@ final class HttpClientTest extends TestCase
         $httpClient = HttpClient::create()
             ->saveToFile(__FILE__, $writer);
 
-        $this->invoke(Closure::bind(function () use ($writer): void {
+        $this->invoke(\Closure::bind(function () use ($writer): void {
             Assert::assertEquals(
                 [
                     new FlysystemWritePlugin(
@@ -497,16 +492,16 @@ final class HttpClientTest extends TestCase
         $this->expectExceptionMessage('Expected argument of type "League\Flysystem\FilesystemOperator or League\Flysystem\FilesystemInterface", "stdClass" given');
 
         HttpClient::create()
-            ->saveToFile(__FILE__, new stdClass());
+            ->saveToFile(__FILE__, new \stdClass());
     }
 
     public function testSaveToFileWithInvalidPath(): void
     {
-        if (!interface_exists(FilesystemOperator::class) && !interface_exists(FilesystemInterface::class)) {
+        if (!\interface_exists(FilesystemOperator::class) && !\interface_exists(FilesystemInterface::class)) {
             self::markTestSkipped('Flysystem is not available');
         }
 
-        $flysystem = interface_exists(FilesystemOperator::class) ?
+        $flysystem = \interface_exists(FilesystemOperator::class) ?
             $this->createMock(FilesystemOperator::class) :
             $this->createMock(FilesystemInterface::class);
 
@@ -529,12 +524,13 @@ final class HttpClientTest extends TestCase
 
     private static function assertObjectIsNotTheSame(RequestBuilder $expected, RequestBuilder $actual): void
     {
-        /** @return mixed */
+        /**
+         * @return mixed
+         *
+         * @throws \ReflectionException
+         */
         $getOptionsProperty = static function (RequestBuilder $object) {
-            $ref = new \ReflectionProperty($object, 'options');
-            $ref->setAccessible(true);
-
-            return $ref->getValue($object);
+            return (new \ReflectionProperty($object, 'options'))->getValue($object);
         };
 
         self::assertNotSame($expected, $actual);
@@ -542,7 +538,7 @@ final class HttpClientTest extends TestCase
     }
 
     /**
-     * @param Closure|false $closure
+     * @param \Closure|false $closure
      */
     private function invoke($closure): void
     {

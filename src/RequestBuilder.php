@@ -20,13 +20,11 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
 use SolidWorx\SimpleHttp\Discovery\HttpAsyncClientDiscovery;
+use SolidWorx\SimpleHttp\Enum\HttpMethod;
 use SolidWorx\SimpleHttp\Exception\MissingUrlException;
 use SolidWorx\SimpleHttp\Http\Plugin\CachePlugin;
 use SolidWorx\SimpleHttp\Traits\HttpMethodsTrait;
 use SolidWorx\SimpleHttp\Traits\HttpOptionsTrait;
-use Throwable;
-
-use function in_array;
 
 final class RequestBuilder
 {
@@ -70,7 +68,7 @@ final class RequestBuilder
     }
 
     /**
-     * @throws Throwable
+     * @throws \Throwable
      */
     public function request(): Response
     {
@@ -99,21 +97,20 @@ final class RequestBuilder
             $this->method,
             $this->url
         )
-            ->withProtocolVersion($this->options->httpVersion);
+            ->withProtocolVersion($this->options->httpVersion->value);
 
         $body = $this->options->getBody();
 
         if ('' !== $body) {
-            if (in_array($this->method, [HttpClient::METHOD_GET, HttpClient::METHOD_HEAD], true)) {
+            if (\in_array($this->method, [HttpMethod::GET->value, HttpMethod::HEAD->value], true)) {
                 // When a body is set, but the request is a method that does not require a body, then we default to a POST request
-                $request = $request->withMethod(HttpClient::METHOD_POST);
+                $request = $request->withMethod(HttpMethod::POST->value);
             }
 
             $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
             $request = $request->withBody($streamFactory->createStream($this->options->getBody()));
         }
 
-        /** @var string $value */
         foreach ($this->options->headers as $name => $value) {
             $request = $request->withHeader($name, $value);
         }

@@ -13,18 +13,19 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Traits;
 
+use SolidWorx\SimpleHttp\Enum\HttpMethod;
 use SolidWorx\SimpleHttp\HttpClient;
 
 trait HttpMethodsTrait
 {
-    private string $method = HttpClient::METHOD_GET;
+    private string $method = 'GET';
 
     /**
      * @return $this
      */
     public function get(): self
     {
-        return $this->method(HttpClient::METHOD_GET);
+        return $this->method(HttpMethod::GET->value);
     }
 
     /**
@@ -32,7 +33,7 @@ trait HttpMethodsTrait
      */
     public function post(): self
     {
-        return $this->method(HttpClient::METHOD_POST);
+        return $this->method(HttpMethod::POST->value);
     }
 
     /**
@@ -40,7 +41,7 @@ trait HttpMethodsTrait
      */
     public function put(): self
     {
-        return $this->method(HttpClient::METHOD_PUT);
+        return $this->method(HttpMethod::PUT->value);
     }
 
     /**
@@ -48,7 +49,7 @@ trait HttpMethodsTrait
      */
     public function patch(): self
     {
-        return $this->method(HttpClient::METHOD_PATCH);
+        return $this->method(HttpMethod::PATCH->value);
     }
 
     /**
@@ -56,7 +57,7 @@ trait HttpMethodsTrait
      */
     public function options(): self
     {
-        return $this->method(HttpClient::METHOD_OPTIONS);
+        return $this->method(HttpMethod::OPTIONS->value);
     }
 
     /**
@@ -64,7 +65,7 @@ trait HttpMethodsTrait
      */
     public function delete(): self
     {
-        return $this->method(HttpClient::METHOD_DELETE);
+        return $this->method(HttpMethod::DELETE->value);
     }
 
     /**

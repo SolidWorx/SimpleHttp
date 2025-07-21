@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Traits;
 
-use Closure;
 use Http\Client\Common\Plugin;
 use Http\Client\Common\Plugin\BaseUriPlugin;
 use Http\Client\Common\Plugin\QueryDefaultsPlugin;
@@ -22,17 +21,14 @@ use Http\Message\Authentication\BasicAuth;
 use Http\Message\Authentication\Bearer;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemOperator;
+use SolidWorx\SimpleHttp\Enum\HttpVersion;
+use SolidWorx\SimpleHttp\Enum\RequestHeader;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentTypeException;
 use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
 use SolidWorx\SimpleHttp\HttpClient;
 use SolidWorx\SimpleHttp\Progress;
 use Symfony\Component\Mime\Part\DataPart;
-use Traversable;
-
-use function fopen;
-use function is_string;
-use function sprintf;
 
 trait HttpOptionsTrait
 {
@@ -77,7 +73,7 @@ trait HttpOptionsTrait
     }
 
     /**
-     * @param array|string|resource|Traversable|Closure $body
+     * @param array|string|resource|\Traversable|\Closure $body
      *
      * @return $this
      */
@@ -104,10 +100,10 @@ trait HttpOptionsTrait
     /**
      * @return $this
      */
-    public function header(string $key, ?string $value = null): self
+    public function header(string|RequestHeader $key, ?string $value = null): self
     {
         $httpClient = clone $this;
-        $httpClient->options = $httpClient->options->addHeader($key, $value);
+        $httpClient->options = $httpClient->options->addHeader(\is_string($key) ? $key : $key->value, $value);
 
         return $httpClient;
     }
@@ -127,8 +123,8 @@ trait HttpOptionsTrait
     {
         $httpClient = clone $this;
 
-        return $httpClient->header('Content-Type', 'application/json')
-            ->header('Accept', 'application/json')
+        return $httpClient->header(RequestHeader::CONTENT_TYPE, 'application/json')
+            ->header(RequestHeader::ACCEPT, 'application/json')
             ->body(\json_encode($json, JSON_THROW_ON_ERROR));
     }
 
@@ -148,7 +144,6 @@ trait HttpOptionsTrait
 
     /**
      * @param string|resource $filePath
-     * @param mixed           $writer
      *
      * @return $this
      */
@@ -163,10 +158,10 @@ trait HttpOptionsTrait
         }
 
         if (!$writer instanceof FilesystemOperator && !$writer instanceof FilesystemInterface) {
-            throw new InvalidArgumentTypeException(sprintf('%s or %s', FilesystemOperator::class, FilesystemInterface::class), $writer);
+            throw new InvalidArgumentTypeException(\sprintf('%s or %s', FilesystemOperator::class, FilesystemInterface::class), $writer);
         }
 
-        if (!is_string($filePath)) {
+        if (!\is_string($filePath)) {
             throw new InvalidArgumentException('When saving files using Flysystem, the file path must be a string');
         }
 
@@ -182,10 +177,10 @@ trait HttpOptionsTrait
     {
         $httpClient = clone $this;
 
-        $resource = fopen($filePath, 'a+b');
+        $resource = \fopen($filePath, 'a+b');
 
         if (false === $resource) {
-            throw new InvalidArgumentException(sprintf('Could not open file "%s" for writing', $filePath));
+            throw new InvalidArgumentException(\sprintf('Could not open file "%s" for writing', $filePath));
         }
 
         $httpClient->options = $httpClient->options->buffer($resource);
@@ -209,10 +204,10 @@ trait HttpOptionsTrait
     /**
      * @return $this
      */
-    public function httpVersion(string $httpVersion): self
+    public function httpVersion(string|HttpVersion $httpVersion): self
     {
         $httpClient = clone $this;
-        $httpClient->options->httpVersion = $httpVersion;
+        $httpClient->options->httpVersion = \is_string($httpVersion) ? HttpVersion::from($httpVersion) : $httpVersion;
 
         return $httpClient;
     }
@@ -223,7 +218,7 @@ trait HttpOptionsTrait
     public function http2(): self
     {
         $httpClient = clone $this;
-        $httpClient->options->httpVersion = HttpClient::HTTP_VERSION_2;
+        $httpClient->options->httpVersion = HttpVersion::HTTP_2_0;
 
         return $httpClient;
     }

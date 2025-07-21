@@ -13,14 +13,10 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Exception;
 
-use Throwable;
-
-use function sprintf;
-
 final class NotImplementedException extends \InvalidArgumentException
 {
-    public function __construct(string $method, int $code = 0, Throwable $previous = null)
+    public function __construct(string $method, int $code = 0, ?\Throwable $previous = null)
     {
-        parent::__construct(sprintf('The method "%s" is not implemented', $method), $code, $previous);
+        parent::__construct(\sprintf('The method "%s" is not implemented', $method), $code, $previous);
     }
 }

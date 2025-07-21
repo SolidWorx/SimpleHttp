@@ -22,9 +22,6 @@ use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemOperator;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Throwable;
-
-use function is_resource;
 
 final class FlysystemWritePlugin implements Plugin
 {
@@ -45,7 +42,7 @@ final class FlysystemWritePlugin implements Plugin
 
     /**
      * @throws FileNotFoundException
-     * @throws Throwable
+     * @throws \Throwable
      * @throws FileExistsException
      */
     public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
@@ -57,7 +54,7 @@ final class FlysystemWritePlugin implements Plugin
             $body = $response->getBody();
             $stream = $body->detach();
 
-            if (!is_resource($stream)) {
+            if (!\is_resource($stream)) {
                 return $response;
             }
 
@@ -74,7 +71,7 @@ final class FlysystemWritePlugin implements Plugin
 
             $resource = $this->filesystem->readStream($this->path);
 
-            if (is_resource($resource)) {
+            if (\is_resource($resource)) {
                 $body = $streamFactory->createStreamFromResource($resource);
             }
 

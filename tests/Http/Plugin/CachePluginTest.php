@@ -175,7 +175,7 @@ final class CachePluginTest extends TestCase
         $cacheItemPool->expects(self::once())
             ->method('getItem')
             ->with(md5('GEThttps://example.com'))
-            ->willThrowException(new class extends \Exception implements InvalidArgumentException{});
+            ->willThrowException(new class extends \Exception implements InvalidArgumentException {});
 
         $cacheItemPool->expects(self::never())
             ->method('save');

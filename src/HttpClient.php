@@ -14,22 +14,11 @@ declare(strict_types=1);
 namespace SolidWorx\SimpleHttp;
 
 use Psr\Http\Client\ClientInterface;
+use SolidWorx\SimpleHttp\Enum\HttpMethod;
+use SolidWorx\SimpleHttp\Enum\HttpVersion;
 
 final class HttpClient
 {
-    public const HTTP_VERSION_1 = '1.1';
-    public const HTTP_VERSION_2 = '2.0';
-
-    public const METHOD_GET = 'GET';
-    public const METHOD_POST = 'POST';
-    public const METHOD_PUT = 'PUT';
-    public const METHOD_PATCH = 'PATCH';
-    public const METHOD_OPTIONS = 'OPTIONS';
-    public const METHOD_DELETE = 'DELETE';
-    public const METHOD_HEAD = 'HEAD';
-    public const METHOD_TRACE = 'TRACE';
-    public const METHOD_CONNECT = 'CONNECT';
-
     private ?ClientInterface $client = null;
 
     public function __construct(?ClientInterface $client = null)

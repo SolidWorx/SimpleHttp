@@ -13,20 +13,11 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp;
 
-use const JSON_THROW_ON_ERROR;
-
-use Exception;
 use Http\Promise\Promise;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
 use SolidWorx\SimpleHttp\Exception\NotImplementedException;
-
-use function is_array;
-use function is_string;
-use function json_decode;
-use function stream_copy_to_stream;
 
 final class Response implements ResponseInterface
 {
@@ -38,7 +29,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getStatusCode(): int
     {
@@ -49,7 +40,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getHeaders(): array
     {
@@ -60,7 +51,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getContent(): string
     {
@@ -68,7 +59,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws JsonException|Exception
+     * @throws \JsonException|\Exception
      */
     public function toArray(): array
     {
@@ -76,17 +67,17 @@ final class Response implements ResponseInterface
         $response = $this->response->wait();
 
         $body = $response->getBody()->getContents();
-        $result = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        $result = \json_decode($body, true, 512, \JSON_THROW_ON_ERROR);
 
-        if (!is_array($result)) {
-            throw new JsonException('Unable to decode JSON response');
+        if (!\is_array($result)) {
+            throw new \JsonException('Unable to decode JSON response');
         }
 
         return $result;
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getProtocolVersion(): string
     {
@@ -102,7 +93,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function hasHeader($name): bool
     {
@@ -113,7 +104,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getHeader($name): array
     {
@@ -124,7 +115,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getHeaderLine($name): string
     {
@@ -150,7 +141,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getBody(): StreamInterface
     {
@@ -171,7 +162,7 @@ final class Response implements ResponseInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getReasonPhrase(): string
     {
@@ -184,13 +175,13 @@ final class Response implements ResponseInterface
     /**
      * @param string|resource $path
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function saveToFile($path): void
     {
         $resource = $path;
 
-        if (is_string($path)) {
+        if (\is_string($path)) {
             $resource = fopen($path, 'wb');
         }
 
@@ -201,12 +192,12 @@ final class Response implements ResponseInterface
         $body = $this->getBody()->detach();
 
         if (is_resource($body)) {
-            stream_copy_to_stream($body, $resource);
+            \stream_copy_to_stream($body, $resource);
         }
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function __destruct()
     {

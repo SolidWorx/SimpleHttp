@@ -23,19 +23,14 @@ use SolidWorx\SimpleHttp\Discovery\Strategy\HttpAsyncClientStrategy;
 use SolidWorx\SimpleHttp\Factory\HttpAsyncClientFactory;
 use SolidWorx\SimpleHttp\RequestOptions;
 
-use function array_unique;
-use function array_unshift;
-use function assert;
-use function is_a;
-
 final class HttpAsyncClientDiscovery extends ClassDiscovery
 {
     public static function find(RequestOptions $requestOptions, ?ClientInterface $client = null): HttpAsyncClient
     {
         /** @var list<class-string> $strategies */
         $strategies = self::getStrategies();
-        array_unshift($strategies, HttpAsyncClientStrategy::class);
-        self::setStrategies(array_unique($strategies));
+        \array_unshift($strategies, HttpAsyncClientStrategy::class);
+        self::setStrategies(\array_unique($strategies));
 
         try {
             $clientFactory = self::findOneByType(HttpAsyncClient::class);
@@ -43,7 +38,7 @@ final class HttpAsyncClientDiscovery extends ClassDiscovery
             throw new NotFoundException('No HTTP async clients found. Make sure to install a package providing "php-http/async-client-implementation". Example: "composer require php-http/guzzle7-adapter".', 0, $e);
         }
 
-        if (is_a($clientFactory, HttpAsyncClientFactory::class, true)) {
+        if (\is_a($clientFactory, HttpAsyncClientFactory::class, true)) {
             /* @var HttpAsyncClientFactory $clientFactory */
             return $clientFactory::createInstance($requestOptions, $client);
         }
@@ -54,7 +49,7 @@ final class HttpAsyncClientDiscovery extends ClassDiscovery
 
         $httpClient = self::instantiateClass($clientFactory);
 
-        assert($httpClient instanceof HttpAsyncClient || $httpClient instanceof ClientInterface);
+        \assert($httpClient instanceof HttpAsyncClient || $httpClient instanceof ClientInterface);
 
         return self::getHttpAsyncClient($httpClient);
     }

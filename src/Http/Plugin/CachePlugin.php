@@ -19,6 +19,7 @@ use Http\Promise\Promise;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
+use SolidWorx\SimpleHttp\Enum\HttpMethod;
 
 final class CachePlugin implements Plugin
 {
@@ -33,6 +34,11 @@ final class CachePlugin implements Plugin
 
     public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
     {
+        // If the request method cannot be cached, then skip caching
+        if (\in_array($request->getMethod(), array_map(static fn (HttpMethod $method): string => $method->value, HttpMethod::nonCachableMethods()), true)) {
+            return $next($request);
+        }
+
         $cacheKey = $this->getCacheKey($request);
 
         try {

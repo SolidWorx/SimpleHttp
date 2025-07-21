@@ -13,15 +13,11 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp;
 
-use SolidWorx\SimpleHttp\Exception\InvalidArgumentException;
+use SolidWorx\SimpleHttp\Enum\HttpVersion;
+use SolidWorx\SimpleHttp\Enum\RequestHeader;
 use Symfony\Component\Mime\Header\HeaderInterface;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
-
-use function array_merge;
-use function http_build_query;
-use function is_array;
-use function is_string;
 
 final class RequestOptions
 {
@@ -33,27 +29,28 @@ final class RequestOptions
 
     public array $query = [];
 
+    /**
+     * @var array<string, string>
+     */
     public array $headers = [];
 
     public string $body = '';
 
-    /** @var mixed */
-    public $json = null;
+    public $json;
 
-    /** @var mixed */
-    public $userData = null;
+    public $userData;
 
     public ?int $maxRedirects = null;
 
-    public string $httpVersion = HttpClient::HTTP_VERSION_1;
+    public HttpVersion $httpVersion = HttpVersion::HTTP_1_1;
 
     public ?string $baseUri = null;
 
     /** @var string|resource|null */
-    public $buffer = null;
+    public $buffer;
 
     /** @var callable(Progress): void|null */
-    public $onProgress = null;
+    public $onProgress;
 
     public ?array $resolve = null;
 
@@ -123,11 +120,10 @@ final class RequestOptions
             $body = $this->body;
             $this->body = '';
 
-            $formData = new FormDataPart(array_merge((array) $body, $this->files));
+            $formData = new FormDataPart(\array_merge((array) $body, $this->files));
 
             $headers = $formData->getPreparedHeaders();
 
-            /** @var string $name */
             foreach ($headers->getNames() as $name) {
                 /** @var HeaderInterface $header */
                 $header = $headers->get($name);
@@ -140,18 +136,13 @@ final class RequestOptions
         return $this->body;
     }
 
-    /**
-     * @param mixed $body
-     */
-    public function body($body): self
+    public function body(array|string $body): self
     {
-        if (is_array($body)) {
-            $this->body = http_build_query($body, '', '&');
-            $this->addHeader('Content-Type', 'application/x-www-form-urlencoded');
-        } elseif (is_string($body)) {
+        if (\is_array($body)) {
+            $this->body = \http_build_query($body, '', '&');
+            $this->addHeader(RequestHeader::CONTENT_TYPE, 'application/x-www-form-urlencoded');
+        } elseif (\is_string($body)) {
             $this->body = $body;
-        } else {
-            throw new InvalidArgumentException('Invalid body, expected string or array');
         }
 
         return $this;
@@ -171,9 +162,9 @@ final class RequestOptions
         return $this;
     }
 
-    public function addHeader(string $key, ?string $value = null): self
+    public function addHeader(string|RequestHeader $key, string $value): self
     {
-        $this->headers[$key] = $value;
+        $this->headers[\is_string($key) ? $key : $key->value] = $value;
 
         return $this;
     }
@@ -205,9 +196,9 @@ final class RequestOptions
         return $this;
     }
 
-    public function httpVersion(string $httpVersion): self
+    public function httpVersion(string|HttpVersion $httpVersion): self
     {
-        $this->httpVersion = $httpVersion;
+        $this->httpVersion = \is_string($httpVersion) ? HttpVersion::from($httpVersion) : $httpVersion;
 
         return $this;
     }

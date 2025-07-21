@@ -13,11 +13,9 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Exception;
 
-use RuntimeException;
-
-final class MissingUrlException extends RuntimeException
+final class MissingUrlException extends \RuntimeException
 {
-    public function __construct(int $code = 0, \Throwable $previous = null)
+    public function __construct(int $code = 0, ?\Throwable $previous = null)
     {
         parent::__construct('The "url" option is missing. Ensure you set the URL with the `$httpClient->url()` method.', $code, $previous);
     }

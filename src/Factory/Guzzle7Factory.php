@@ -21,11 +21,8 @@ use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Progress;
 use SolidWorx\SimpleHttp\RequestOptions;
 
-use function array_merge_recursive;
-use function class_exists;
 use function GuzzleHttp\Psr7\stream_for;
 use function GuzzleHttp\Psr7\try_fopen;
-use function is_string;
 
 final class Guzzle7Factory implements HttpAsyncClientFactory
 {
@@ -42,7 +39,7 @@ final class Guzzle7Factory implements HttpAsyncClientFactory
         }
 
         if (null !== $requestOptions->buffer) {
-            if (is_string($requestOptions->buffer)) {
+            if (\is_string($requestOptions->buffer)) {
                 $resource = self::streamFor(self::tryFopen($requestOptions->buffer, 'c+b'));
             } else {
                 $resource = self::streamFor($requestOptions->buffer);
@@ -54,7 +51,7 @@ final class Guzzle7Factory implements HttpAsyncClientFactory
 
         if ($client instanceof Client) {
             // @phpstan-ignore-next-line @psalm-ignore-next-line
-            return Guzzle7Client::createWithConfig(array_merge_recursive($options, $client->getConfig())); // getConfig is deprecated and will be removed in Guzzle 8
+            return Guzzle7Client::createWithConfig(\array_merge_recursive($options, $client->getConfig())); // getConfig is deprecated and will be removed in Guzzle 8
         }
 
         return Guzzle7Client::createWithConfig($options);
@@ -65,7 +62,7 @@ final class Guzzle7Factory implements HttpAsyncClientFactory
      */
     private static function tryFopen(string $resource, string $mode)
     {
-        if (class_exists(Utils::class)) {
+        if (\class_exists(Utils::class)) {
             return Utils::tryFopen($resource, $mode);
         }
 
@@ -77,7 +74,7 @@ final class Guzzle7Factory implements HttpAsyncClientFactory
      */
     private static function streamFor($stream): StreamInterface
     {
-        if (class_exists(Utils::class)) {
+        if (\class_exists(Utils::class)) {
             return Utils::streamFor($stream);
         }
 

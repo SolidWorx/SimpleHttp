@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace SolidWorx\SimpleHttp\Tests\Http\Plugin;
 
-use Exception;
-use Generator;
 use Http\Client\Promise\HttpFulfilledPromise;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\FilesystemOperator;
@@ -24,13 +22,6 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin;
-
-use function fopen;
-use function fseek;
-use function ftell;
-use function fwrite;
-use function interface_exists;
-use function sys_get_temp_dir;
 
 /**
  * @coversDefaultClass \SolidWorx\SimpleHttp\Http\Plugin\FlysystemWritePlugin
@@ -44,10 +35,10 @@ final class FlysystemWritePluginTest extends TestCase
      */
     public function testHandleRequestWithFlysytemV1(string $class): void
     {
-        $path = sys_get_temp_dir();
+        $path = \sys_get_temp_dir();
         $body = $this->createMock(StreamInterface::class);
 
-        $resource = fopen('php://temp', 'rb+');
+        $resource = \fopen('php://temp', 'rb+');
 
         if (false === $resource) {
             self::fail('Could not open temp file');
@@ -82,7 +73,7 @@ final class FlysystemWritePluginTest extends TestCase
             self::assertSame('text/html', $response->getHeaderLine('Content-Type'));
             self::assertSame($resource, $response->getBody()->detach());
             self::assertSame('1.1', $response->getProtocolVersion());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             self::fail($e->getMessage());
         } finally {
             fclose($resource);
@@ -96,17 +87,17 @@ final class FlysystemWritePluginTest extends TestCase
      */
     public function testHandleRequestWithFlysytemV1AndSeekableStream(string $class): void
     {
-        $path = sys_get_temp_dir();
+        $path = \sys_get_temp_dir();
         $body = $this->createMock(StreamInterface::class);
 
-        $resource = fopen('php://temp', 'rb+');
+        $resource = \fopen('php://temp', 'rb+');
 
         if (false === $resource) {
             self::fail('Could not open temp file');
         }
 
-        fwrite($resource, 'foo');
-        fseek($resource, 3);
+        \fwrite($resource, 'foo');
+        \fseek($resource, 3);
 
         $body->expects(self::exactly(2))
             ->method('detach')
@@ -145,13 +136,13 @@ final class FlysystemWritePluginTest extends TestCase
 
             $stream = $body->detach();
             self::assertTrue(is_resource($stream));
-            self::assertSame(0, ftell($stream));
+            self::assertSame(0, \ftell($stream));
 
             self::assertSame(200, $response->getStatusCode());
             self::assertSame('text/html', $response->getHeaderLine('Content-Type'));
             self::assertSame($resource, $response->getBody()->detach());
             self::assertSame('1.1', $response->getProtocolVersion());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             self::fail($e->getMessage());
         } finally {
             fclose($resource);
@@ -165,7 +156,7 @@ final class FlysystemWritePluginTest extends TestCase
      */
     public function testHandleRequestWithFlysytemV1AndInvalidResource(string $class): void
     {
-        $path = sys_get_temp_dir();
+        $path = \sys_get_temp_dir();
         $body = $this->createMock(StreamInterface::class);
 
         $body->expects(self::once())
@@ -198,13 +189,13 @@ final class FlysystemWritePluginTest extends TestCase
         self::assertSame('1.1', $newResponse->getProtocolVersion());
     }
 
-    public function flysystemProvider(): Generator
+    public function flysystemProvider(): \Generator
     {
-        if (interface_exists(FilesystemInterface::class)) {
+        if (\interface_exists(FilesystemInterface::class)) {
             yield [FilesystemInterface::class];
         }
 
-        if (interface_exists(FilesystemOperator::class)) {
+        if (\interface_exists(FilesystemOperator::class)) {
             yield [FilesystemOperator::class];
         }
     }
